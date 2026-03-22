@@ -3,1188 +3,745 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#4A90D9">
+    <meta name="theme-color" content="#F2F2F7">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>이소티논 복용 기록</title>
+    <title>투여약</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f4f8;
-            color: #333;
-            min-height: 100vh;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #4A90D9, #357ABD);
-            color: white;
-            padding: 20px 16px 16px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header h1 {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .header .subtitle {
-            font-size: 13px;
-            opacity: 0.85;
-            margin-top: 4px;
-        }
-
-        /* Navigation Tabs */
-        .nav-tabs {
-            display: flex;
-            background: white;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-            position: sticky;
-            top: 62px;
-            z-index: 99;
-        }
-
-        .nav-tab {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 600;
-            color: #888;
-            border: none;
-            background: none;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .nav-tab.active {
-            color: #4A90D9;
-            border-bottom-color: #4A90D9;
-        }
-
-        /* Pages */
-        .page {
-            display: none;
-            padding: 16px;
-            padding-bottom: 40px;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        /* Today Page */
-        .today-card {
-            background: white;
-            border-radius: 16px;
-            padding: 32px 24px;
-            text-align: center;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            margin-bottom: 16px;
-        }
-
-        .today-date {
-            font-size: 24px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .today-weekday {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 24px;
-        }
-
-        .take-btn {
-            width: 160px;
-            height: 160px;
-            border-radius: 50%;
-            border: none;
-            font-size: 20px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            margin: 0 auto 24px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-        }
-
-        .take-btn.not-taken {
-            background: linear-gradient(135deg, #4A90D9, #357ABD);
-            color: white;
-        }
-
-        .take-btn.not-taken:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-
-        .take-btn.taken {
-            background: linear-gradient(135deg, #27ae60, #219a52);
-            color: white;
-        }
-
-        .take-btn.taken:active {
-            transform: scale(0.95);
-        }
-
-        .take-btn .btn-icon {
-            font-size: 40px;
-            margin-bottom: 8px;
-        }
-
-        .take-btn .btn-text {
-            font-size: 18px;
-        }
-
-        .today-status {
-            font-size: 15px;
-            color: #888;
-        }
-
-        /* Summary Cards */
-        .summary-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .summary-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px 16px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-
-        .summary-card .label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 6px;
-        }
-
-        .summary-card .value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #4A90D9;
-        }
-
-        .summary-card .unit {
-            font-size: 14px;
-            color: #666;
-        }
-
-        /* Stats Page */
-        .stats-section {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-
-        .stats-section h2 {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: #333;
-        }
-
-        .year-selector {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .year-selector button {
-            background: #4A90D9;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .year-selector .year-text {
-            font-size: 22px;
-            font-weight: 700;
-            min-width: 80px;
-            text-align: center;
-        }
-
-        .month-bar {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            height: 140px;
-            padding: 0 4px;
-            margin-bottom: 8px;
-        }
-
-        .month-col {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-        }
-
-        .month-bar-fill {
-            width: 20px;
-            background: linear-gradient(to top, #4A90D9, #6db3f8);
-            border-radius: 4px 4px 0 0;
-            min-height: 0;
-            transition: height 0.5s ease;
-            position: relative;
-        }
-
-        .month-bar-fill .bar-value {
-            position: absolute;
-            top: -18px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 11px;
-            font-weight: 600;
-            color: #4A90D9;
-        }
-
-        .month-label {
-            font-size: 11px;
-            color: #888;
-            margin-top: 6px;
-        }
-
-        /* Year Summary Table */
-        .year-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .year-table th, .year-table td {
-            padding: 10px 8px;
-            text-align: center;
-            font-size: 13px;
-        }
-
-        .year-table th {
-            color: #888;
-            font-weight: 600;
-            border-bottom: 2px solid #eee;
-        }
-
-        .year-table td {
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .year-table .highlight {
-            color: #4A90D9;
-            font-weight: 700;
-        }
-
-        /* Calendar Page */
-        .calendar-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .calendar-header button {
-            background: #4A90D9;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .calendar-header .cal-title {
-            font-size: 18px;
-            font-weight: 700;
-            min-width: 120px;
-            text-align: center;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-
-        .cal-weekday {
-            text-align: center;
-            font-size: 12px;
-            color: #888;
-            font-weight: 600;
-            padding: 8px 0;
-        }
-
-        .cal-day {
-            text-align: center;
-            padding: 10px 4px;
-            font-size: 13px;
-            border-radius: 8px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .cal-day.empty {
-            cursor: default;
-        }
-
-        .cal-day.taken {
-            background: #e8f5e9;
-            color: #27ae60;
-            font-weight: 700;
-        }
-
-        .cal-day.today {
-            border: 2px solid #4A90D9;
-            font-weight: 700;
-        }
-
-        .cal-day.taken.today {
-            border-color: #27ae60;
-        }
-
-        .cal-day .dot {
-            display: none;
-            width: 6px;
-            height: 6px;
-            background: #27ae60;
-            border-radius: 50%;
-            margin: 2px auto 0;
-        }
-
-        .cal-day.taken .dot {
-            display: block;
-        }
-
-        /* Calendar month summary */
-        .cal-month-summary {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            text-align: center;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .cal-month-summary strong {
-            color: #4A90D9;
-            font-size: 20px;
-        }
-
-        /* Settings Page */
-        .settings-section {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-
-        .settings-section h2 {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .settings-btn {
-            width: 100%;
-            padding: 14px;
-            background: #4A90D9;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 8px;
-        }
-
-        .settings-btn.danger {
-            background: #e74c3c;
-        }
-
-        .settings-btn:active {
-            opacity: 0.8;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            margin: 16px;
-            max-width: 360px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .modal h3 {
-            font-size: 18px;
-            margin-bottom: 12px;
-        }
-
-        .modal p {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .modal-buttons .cancel {
-            background: #eee;
-            color: #666;
-        }
-
-        .modal-buttons .confirm {
-            background: #4A90D9;
-            color: white;
-        }
-
-        .modal-buttons .confirm.danger {
-            background: #e74c3c;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #333;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 24px;
-            font-size: 14px;
-            z-index: 300;
-            transition: transform 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--blue:#007AFF;--green:#34C759;--red:#FF3B30;--orange:#FF9500;--cyan:#5AC8FA;--gray:#8E8E93;--gray3:#C7C7CC;--gray5:#E5E5EA;--gray6:#F2F2F7;--bg:#FFF;--card-blue:#E8F4FD;--card-green:#E3F9E8;--text1:#000;--text3:#8E8E93;--sb:env(safe-area-inset-bottom,0px)}
+        body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;-webkit-user-select:none;user-select:none;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+
+        .top-bar{display:flex;align-items:center;justify-content:center;padding:52px 16px 10px;position:relative}
+        .top-bar .title{font-size:17px;font-weight:600}
+        .top-bar .tb-right{position:absolute;right:16px;font-size:15px;color:var(--blue);background:none;border:none;cursor:pointer;font-weight:500}
+
+        .date-header{text-align:center;padding:16px 0 8px}
+        .date-header .date-text{font-size:22px;font-weight:700}
+        .date-header .date-arrow{font-size:10px}
+
+        .week-strip{display:flex;justify-content:center;gap:6px;padding:8px 20px 4px}
+        .week-day{display:flex;flex-direction:column;align-items:center;gap:6px;width:40px}
+        .week-day .wd-label{font-size:11px;color:var(--text3);font-weight:500}
+        .week-day .wd-num{font-size:13px;font-weight:600;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+        .week-day.today .wd-num{background:var(--text1);color:white}
+        .week-day .wd-dot{width:10px;height:10px;border-radius:50%;background:var(--gray3)}
+        .week-day .wd-dot.taken{background:var(--cyan)}
+
+        .divider{height:0.5px;background:var(--gray5);margin:12px 20px}
+        .section{padding:0 20px}
+        .section-title{font-size:22px;font-weight:700;margin:16px 0 12px}
+        .section-subtitle{font-size:15px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;margin:20px 0 8px}
+
+        .med-card{border-radius:16px;padding:16px 20px;margin-bottom:10px;position:relative;display:flex;align-items:center;gap:12px}
+        .med-card .med-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+        .med-card .med-info{flex:1}
+        .med-card .med-name{font-size:17px;font-weight:600}
+        .med-card .med-dose{font-size:13px;color:var(--text3);margin-top:2px}
+        .med-card .med-actions{display:flex;gap:8px}
+        .med-card .ma-btn{padding:8px 16px;border-radius:20px;border:none;font-size:13px;font-weight:600;cursor:pointer}
+        .ma-btn.skip{background:#FFF0E0;color:var(--orange)}
+        .ma-btn.take{background:var(--blue);color:white}
+        .ma-btn.taken{background:var(--green);color:white}
+        .ma-btn:active{opacity:0.7}
+
+        .recorded-card{background:var(--gray6);border-radius:16px;padding:14px 20px;margin-bottom:8px}
+        .recorded-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:15px}
+        .recorded-item .ri-check{color:var(--green);font-size:16px}
+        .recorded-item .ri-dose{font-size:13px;color:var(--text3);margin-left:auto}
+
+        /* Add Med Button */
+        .add-med-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--gray6);border-radius:16px;margin:12px 20px;border:none;width:calc(100% - 40px);cursor:pointer;font-size:17px;color:var(--blue);font-weight:500}
+        .add-med-btn:active{background:var(--gray5)}
+
+        /* Med Manage Card */
+        .med-manage{background:var(--gray6);border-radius:16px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer}
+        .med-manage:active{background:var(--gray5)}
+        .med-manage .mm-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+        .med-manage .mm-info{flex:1}
+        .med-manage .mm-name{font-size:17px;font-weight:600}
+        .med-manage .mm-dose{font-size:13px;color:var(--text3);margin-top:2px}
+        .med-manage .mm-count{font-size:13px;margin-top:2px}
+        .med-manage .mm-arrow{color:var(--gray3);font-size:18px}
+
+        /* Summary Grid */
+        .sum-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+        .sum-card{background:var(--gray6);border-radius:14px;padding:14px 12px;text-align:center}
+        .sum-card .sc-label{font-size:11px;color:var(--text3);font-weight:500}
+        .sum-card .sc-val{font-size:24px;font-weight:700;color:var(--cyan);margin-top:4px}
+        .sum-card .sc-unit{font-size:11px;color:var(--text3)}
+
+        /* Tab Bar */
+        .tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(249,249,249,0.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid rgba(0,0,0,0.12);display:flex;padding:6px 0 calc(6px + var(--sb));z-index:100}
+        .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;border:none;background:none;cursor:pointer}
+        .tab-item .t-icon{font-size:22px;color:var(--gray)}
+        .tab-item .t-label{font-size:10px;font-weight:500;color:var(--gray)}
+        .tab-item.active .t-icon,.tab-item.active .t-label{color:var(--blue)}
+
+        .page{display:none}.page.active{display:block}
+
+        /* Calendar */
+        .cal-page-header{padding:52px 20px 10px}
+        .cal-page-header h1{font-size:34px;font-weight:700}
+        .cal-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 20px}
+        .cal-nav button{width:32px;height:32px;border-radius:50%;border:none;background:var(--gray6);color:var(--blue);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .cal-nav .cn-title{font-size:17px;font-weight:600}
+        .cal-grid{margin:0 16px;background:white;border-radius:16px;padding:12px 16px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+        .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr)}
+        .cal-wd{text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:6px 0}
+        .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+        .cal-d{text-align:center;padding:8px 4px;font-size:13px;border-radius:8px;cursor:pointer;position:relative}
+        .cal-d.empty{cursor:default}
+        .cal-d.taken{color:var(--cyan);font-weight:700}
+        .cal-d.taken::after{content:'';display:block;width:6px;height:6px;border-radius:50%;background:var(--cyan);margin:3px auto 0}
+        .cal-d.today{font-weight:700;color:var(--blue)}
+        .cal-d.taken.today{color:var(--blue)}
+        .cal-d.taken.today::after{background:var(--blue)}
+        .cal-d:active:not(.empty){opacity:0.6}
+        .cal-stats{margin:16px 20px;background:var(--gray6);border-radius:16px;padding:16px 20px;display:flex;justify-content:space-between}
+        .cal-stat-item{text-align:center}
+        .cal-stat-item .cs-value{font-size:22px;font-weight:700;color:var(--cyan)}
+        .cal-stat-item .cs-label{font-size:12px;color:var(--text3);margin-top:2px}
+
+        /* Cal Med Filter */
+        .cal-filter{display:flex;gap:8px;padding:8px 20px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+        .cal-filter::-webkit-scrollbar{display:none}
+        .cf-btn{padding:6px 14px;border-radius:20px;border:none;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--gray6);color:var(--text1)}
+        .cf-btn.active{background:var(--cyan);color:white}
+
+        /* Stats */
+        .stats-header{padding:52px 20px 10px}
+        .stats-header h1{font-size:34px;font-weight:700}
+        .stats-content{padding:0 20px}
+        .chart-card{background:var(--gray6);border-radius:16px;padding:20px;margin-bottom:16px}
+        .chart-card .cc-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px}
+        .chart-card .cc-value{font-size:34px;font-weight:700;color:var(--cyan);margin:4px 0 16px}
+        .year-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px}
+        .year-nav button{width:28px;height:28px;border-radius:50%;border:none;background:rgba(0,0,0,0.05);color:var(--blue);font-size:12px;cursor:pointer}
+        .year-nav span{font-size:17px;font-weight:600;min-width:60px;text-align:center}
+        .bar-chart{display:flex;align-items:flex-end;height:100px;gap:4px}
+        .bar-item{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+        .bar-fill{width:100%;max-width:22px;background:var(--cyan);border-radius:4px 4px 0 0;transition:height 0.4s ease}
+        .bar-lbl{font-size:9px;color:var(--text3);margin-top:4px}
+        .year-list{background:var(--gray6);border-radius:16px;overflow:hidden;margin-bottom:16px}
+        .yl-item{display:flex;justify-content:space-between;padding:14px 20px;border-bottom:0.5px solid var(--gray5);font-size:17px}
+        .yl-item:last-child{border:none}.yl-item .yl-val{color:var(--cyan);font-weight:600}
+        .interval-card{background:var(--gray6);border-radius:16px;padding:20px;margin-bottom:20px}
+        .interval-card .ic-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
+        .interval-card .ic-val{font-size:34px;font-weight:700;color:var(--cyan)}
+        .interval-card .ic-sub{font-size:13px;color:var(--text3);margin-top:4px}
+
+        /* Settings */
+        .settings-header{padding:52px 20px 10px}
+        .settings-header h1{font-size:34px;font-weight:700}
+        .settings-content{padding:0 20px}
+        .settings-group{background:var(--gray6);border-radius:16px;overflow:hidden;margin-bottom:16px}
+        .sg-item{display:flex;align-items:center;padding:14px 20px;border-bottom:0.5px solid var(--gray5);cursor:pointer;font-size:17px}
+        .sg-item:last-child{border:none}.sg-item:active{background:rgba(0,0,0,0.03)}
+        .sg-item .sg-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-right:14px;color:white}
+        .sg-item .sg-label{flex:1}.sg-item .sg-arrow{color:var(--gray3);font-size:14px}
+        .sg-item.danger .sg-label{color:var(--red)}
+        .settings-footer{text-align:center;padding:20px;font-size:13px;color:var(--text3)}
+
+        /* Modal & Sheet */
+        .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center}
+        .modal-overlay.active{display:flex}
+        .modal-sheet{background:white;border-radius:20px 20px 0 0;padding:24px 20px calc(24px + var(--sb));width:100%;max-width:500px;animation:slideUp 0.3s ease;max-height:80vh;overflow-y:auto}
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+        .modal-sheet h3{font-size:20px;font-weight:700;text-align:center;margin-bottom:16px}
+        .modal-sheet p{font-size:15px;color:var(--text3);text-align:center;margin-bottom:24px}
+
+        /* Form */
+        .form-group{margin-bottom:16px}
+        .form-label{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:6px;display:block}
+        .form-input{width:100%;padding:14px 16px;border:1px solid var(--gray5);border-radius:12px;font-size:17px;background:var(--gray6);outline:none;font-family:inherit}
+        .form-input:focus{border-color:var(--blue)}
+
+        .color-picker{display:flex;gap:10px;flex-wrap:wrap}
+        .color-opt{width:40px;height:40px;border-radius:50%;border:3px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .color-opt.selected{border-color:var(--text1)}
+
+        .m-btn{width:100%;padding:16px;border:none;border-radius:14px;font-size:17px;font-weight:600;cursor:pointer;margin-bottom:8px}
+        .m-btn.primary{background:var(--blue);color:white}
+        .m-btn.danger{background:var(--red);color:white}
+        .m-btn.cancel{background:var(--gray6);color:var(--blue)}
+        .m-btn:active{opacity:0.7}
+
+        .toast{position:fixed;top:50px;left:50%;transform:translateX(-50%) translateY(-100px);background:rgba(0,0,0,0.78);backdrop-filter:blur(20px);color:white;padding:14px 24px;border-radius:14px;font-size:15px;font-weight:500;z-index:300;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1)}
+        .toast.show{transform:translateX(-50%) translateY(0)}
+        input[type=file]{display:none}
     </style>
 </head>
 <body>
 
-    <!-- Header -->
-    <div class="header">
-        <h1>이소티논 복용 기록</h1>
-        <div class="subtitle" id="totalCount">전체 복용: 0알</div>
-    </div>
-
-    <!-- Navigation -->
-    <div class="nav-tabs">
-        <button class="nav-tab active" data-page="today">오늘</button>
-        <button class="nav-tab" data-page="calendar">달력</button>
-        <button class="nav-tab" data-page="stats">통계</button>
-        <button class="nav-tab" data-page="settings">설정</button>
-    </div>
-
-    <!-- Today Page -->
+    <!-- TODAY PAGE -->
     <div class="page active" id="page-today">
-        <div class="today-card">
-            <div class="today-date" id="todayDate"></div>
-            <div class="today-weekday" id="todayWeekday"></div>
-            <button class="take-btn not-taken" id="takeBtn" onclick="toggleToday()">
-                <span class="btn-icon" id="btnIcon">💊</span>
-                <span class="btn-text" id="btnText">복용하기</span>
-            </button>
-            <div class="today-status" id="todayStatus">오늘 아직 복용하지 않았어요</div>
+        <div class="top-bar">
+            <span class="title">투여약</span>
+            <button class="tb-right" onclick="openAddMed()">＋ 약 추가</button>
         </div>
-
-        <div class="summary-row">
-            <div class="summary-card">
-                <div class="label">이번 달 복용</div>
-                <div><span class="value" id="monthCount">0</span> <span class="unit">알</span></div>
-            </div>
-            <div class="summary-card">
-                <div class="label">올해 복용</div>
-                <div><span class="value" id="yearCount">0</span> <span class="unit">알</span></div>
-            </div>
+        <div class="date-header">
+            <div class="date-text" id="todayDateText"></div>
+            <div class="date-arrow">▼</div>
         </div>
-
-        <div class="summary-row">
-            <div class="summary-card">
-                <div class="label">전체 누적</div>
-                <div><span class="value" id="allCount">0</span> <span class="unit">알</span></div>
-            </div>
-            <div class="summary-card">
-                <div class="label">마지막 복용</div>
-                <div><span class="value" id="lastTaken" style="font-size:16px;">-</span></div>
-            </div>
+        <div class="week-strip" id="weekStrip"></div>
+        <div class="divider"></div>
+        <div class="section">
+            <div class="section-title">기록</div>
+            <div id="medCardList"></div>
+            <div class="section-subtitle">기록됨</div>
+            <div id="recordedList"></div>
+            <div id="noRecordMsg" style="font-size:15px;color:var(--text3);padding:12px 0;">오늘 복용 기록이 없어요</div>
+        </div>
+        <div class="divider"></div>
+        <div class="section" style="padding-bottom:20px">
+            <div class="section-title">사용자의 투여약</div>
+            <div id="medSummaryList"></div>
+            <div id="summaryGrid"></div>
         </div>
     </div>
 
-    <!-- Calendar Page -->
+    <!-- CALENDAR PAGE -->
     <div class="page" id="page-calendar">
-        <div class="calendar-header">
+        <div class="cal-page-header"><h1>달력</h1></div>
+        <div class="cal-filter" id="calFilter"></div>
+        <div class="cal-nav">
             <button onclick="changeCalMonth(-1)">◀</button>
-            <span class="cal-title" id="calTitle"></span>
+            <span class="cn-title" id="calTitle"></span>
             <button onclick="changeCalMonth(1)">▶</button>
         </div>
-        <div class="calendar-grid" id="calendarGrid"></div>
-        <div class="cal-month-summary" id="calMonthSummary"></div>
+        <div class="cal-grid">
+            <div class="cal-weekdays">
+                <div class="cal-wd">일</div><div class="cal-wd">월</div><div class="cal-wd">화</div>
+                <div class="cal-wd">수</div><div class="cal-wd">목</div><div class="cal-wd">금</div><div class="cal-wd">토</div>
+            </div>
+            <div class="cal-days" id="calDays"></div>
+        </div>
+        <div class="cal-stats">
+            <div class="cal-stat-item"><div class="cs-value" id="calMC">0</div><div class="cs-label">이번 달</div></div>
+            <div class="cal-stat-item"><div class="cs-value" id="calYC">0</div><div class="cs-label">올해</div></div>
+            <div class="cal-stat-item"><div class="cs-value" id="calAC">0</div><div class="cs-label">전체</div></div>
+        </div>
     </div>
 
-    <!-- Stats Page -->
+    <!-- STATS PAGE -->
     <div class="page" id="page-stats">
-        <div class="stats-section">
-            <h2>월별 복용량</h2>
-            <div class="year-selector">
-                <button onclick="changeStatsYear(-1)">◀</button>
-                <span class="year-text" id="statsYear"></span>
-                <button onclick="changeStatsYear(1)">▶</button>
+        <div class="stats-header"><h1>통계</h1></div>
+        <div class="stats-content">
+            <div class="cal-filter" id="statsFilter" style="padding:0;margin-bottom:16px"></div>
+            <div class="chart-card">
+                <div class="cc-title">월별 복용량</div>
+                <div class="year-nav">
+                    <button onclick="changeStatsYear(-1)">◀</button>
+                    <span id="statsYear"></span>
+                    <button onclick="changeStatsYear(1)">▶</button>
+                </div>
+                <div class="cc-value" id="statsTotal">0알</div>
+                <div class="bar-chart" id="barChart"></div>
+                <div style="display:flex;justify-content:space-between;margin-top:4px">
+                    <span class="bar-lbl">1</span><span class="bar-lbl">2</span><span class="bar-lbl">3</span>
+                    <span class="bar-lbl">4</span><span class="bar-lbl">5</span><span class="bar-lbl">6</span>
+                    <span class="bar-lbl">7</span><span class="bar-lbl">8</span><span class="bar-lbl">9</span>
+                    <span class="bar-lbl">10</span><span class="bar-lbl">11</span><span class="bar-lbl">12</span>
+                </div>
             </div>
-            <div class="month-bar" id="monthBarChart"></div>
-            <div style="display:flex;justify-content:space-between;padding:0 4px;">
-                <span class="month-label">1</span><span class="month-label">2</span><span class="month-label">3</span>
-                <span class="month-label">4</span><span class="month-label">5</span><span class="month-label">6</span>
-                <span class="month-label">7</span><span class="month-label">8</span><span class="month-label">9</span>
-                <span class="month-label">10</span><span class="month-label">11</span><span class="month-label">12</span>
+            <div class="year-list" id="yearList"></div>
+            <div class="interval-card">
+                <div class="ic-title">평균 복용 간격</div>
+                <div class="ic-val" id="avgInterval">-</div>
+                <div class="ic-sub" id="intervalSub"></div>
             </div>
-        </div>
-
-        <div class="stats-section">
-            <h2>연도별 총 복용량</h2>
-            <table class="year-table" id="yearTable">
-                <thead>
-                    <tr><th>연도</th><th>복용 횟수</th><th>월평균</th></tr>
-                </thead>
-                <tbody id="yearTableBody"></tbody>
-            </table>
-        </div>
-
-        <div class="stats-section">
-            <h2>복용 간격</h2>
-            <div id="intervalStats" style="text-align:center; color:#666; font-size:14px;"></div>
         </div>
     </div>
 
-    <!-- Settings Page -->
+    <!-- SETTINGS PAGE -->
     <div class="page" id="page-settings">
-        <div class="settings-section">
-            <h2>데이터 관리</h2>
-            <button class="settings-btn" onclick="importOldData()">기존 기록 불러오기 (카톡 메모)</button>
-            <button class="settings-btn" onclick="exportData()">데이터 내보내기 (백업)</button>
-            <button class="settings-btn" onclick="importBackup()">백업 데이터 복원</button>
-            <button class="settings-btn danger" onclick="confirmReset()">전체 데이터 초기화</button>
-        </div>
-        <div class="settings-section">
-            <h2>정보</h2>
-            <p style="font-size:13px; color:#888; margin:0;">
-                이소티논 복용 기록 앱 v1.0<br>
-                데이터는 이 기기에 저장됩니다.
-            </p>
-        </div>
-    </div>
-
-    <!-- Confirm Modal -->
-    <div class="modal-overlay" id="modal">
-        <div class="modal">
-            <h3 id="modalTitle">확인</h3>
-            <p id="modalMessage">정말 실행하시겠어요?</p>
-            <div class="modal-buttons">
-                <button class="cancel" onclick="closeModal()">취소</button>
-                <button class="confirm" id="modalConfirm" onclick="modalAction()">확인</button>
+        <div class="settings-header"><h1>설정</h1></div>
+        <div class="settings-content">
+            <div class="settings-group">
+                <div class="sg-item" onclick="importOldData()">
+                    <div class="sg-icon" style="background:var(--blue)">📥</div>
+                    <span class="sg-label">기존 기록 불러오기</span><span class="sg-arrow">›</span>
+                </div>
+                <div class="sg-item" onclick="exportData()">
+                    <div class="sg-icon" style="background:var(--green)">📤</div>
+                    <span class="sg-label">데이터 백업</span><span class="sg-arrow">›</span>
+                </div>
+                <div class="sg-item" onclick="importBackup()">
+                    <div class="sg-icon" style="background:var(--orange)">🔄</div>
+                    <span class="sg-label">백업 복원</span><span class="sg-arrow">›</span>
+                </div>
             </div>
+            <div class="settings-group">
+                <div class="sg-item danger" onclick="confirmReset()">
+                    <div class="sg-icon" style="background:var(--red)">🗑</div>
+                    <span class="sg-label">전체 데이터 초기화</span><span class="sg-arrow">›</span>
+                </div>
+            </div>
+            <div class="settings-footer">복용 기록 v2.0<br>데이터는 이 기기에 저장됩니다</div>
         </div>
     </div>
 
-    <!-- Toast -->
-    <div class="toast" id="toast"></div>
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <button class="tab-item active" data-page="today"><span class="t-icon">♡</span><span class="t-label">요약</span></button>
+        <button class="tab-item" data-page="calendar"><span class="t-icon">▦</span><span class="t-label">달력</span></button>
+        <button class="tab-item" data-page="stats"><span class="t-icon">⊘</span><span class="t-label">통계</span></button>
+        <button class="tab-item" data-page="settings"><span class="t-icon">⋯</span><span class="t-label">설정</span></button>
+    </div>
 
-    <!-- Hidden file input -->
-    <input type="file" id="fileInput" accept=".json,.txt" style="display:none">
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+        <div class="modal-sheet" id="modalContent"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <input type="file" id="fileInput" accept=".json,.txt">
 
     <script>
-        // ============ DATA ============
-        const STORAGE_KEY = 'isotinon_records';
+    const MEDS_KEY='isotinon_meds';
+    const RECS_KEY='isotinon_recs_v2';
+    const MED_COLORS=['#5AC8FA','#FF9500','#FF3B30','#34C759','#AF52DE','#FF2D55','#007AFF','#5856D6'];
 
-        function getRecords() {
-            const data = localStorage.getItem(STORAGE_KEY);
-            return data ? JSON.parse(data) : [];
+    // ===== DATA =====
+    function getMeds(){
+        const d=localStorage.getItem(MEDS_KEY);
+        return d?JSON.parse(d):[{id:'iso',name:'이소티논',dosage:'20mg',color:'#5AC8FA'}];
+    }
+    function saveMeds(m){localStorage.setItem(MEDS_KEY,JSON.stringify(m));}
+    function getRecs(){
+        const d=localStorage.getItem(RECS_KEY);
+        return d?JSON.parse(d):{};
+    }
+    function saveRecs(r){localStorage.setItem(RECS_KEY,JSON.stringify(r));}
+    function getMedRecs(medId){const r=getRecs();return r[medId]||[];}
+    function getAllDatesForMed(medId){return getMedRecs(medId);}
+    function isTakenMed(medId,date){return getMedRecs(medId).includes(date);}
+    function addMedRec(medId,date){
+        const r=getRecs();
+        if(!r[medId])r[medId]=[];
+        if(!r[medId].includes(date)){r[medId].push(date);r[medId].sort();}
+        saveRecs(r);
+    }
+    function removeMedRec(medId,date){
+        const r=getRecs();
+        if(r[medId])r[medId]=r[medId].filter(d=>d!==date);
+        saveRecs(r);
+    }
+    function dateStr(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+    function todayStr(){return dateStr(new Date());}
+    function genId(){return'med_'+Date.now()+'_'+Math.random().toString(36).substr(2,4);}
+
+    // ===== MIGRATION =====
+    function migrateOldData(){
+        const old=localStorage.getItem('isotinon_records');
+        if(old&&!localStorage.getItem('isotinon_migrated_v2')){
+            const dates=JSON.parse(old);
+            const r=getRecs();
+            if(!r['iso'])r['iso']=[];
+            dates.forEach(d=>{if(!r['iso'].includes(d))r['iso'].push(d);});
+            r['iso'].sort();
+            saveRecs(r);
+            localStorage.setItem('isotinon_migrated_v2','true');
         }
+    }
 
-        function saveRecords(records) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    // ===== NAV =====
+    document.querySelectorAll('.tab-item').forEach(tab=>{
+        tab.addEventListener('click',()=>{
+            document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('page-'+tab.dataset.page).classList.add('active');
+            if(tab.dataset.page==='stats')renderStats();
+            if(tab.dataset.page==='calendar')renderCalendar();
+        });
+    });
+
+    // ===== WEEK STRIP =====
+    function renderWeekStrip(){
+        const strip=document.getElementById('weekStrip');strip.innerHTML='';
+        const now=new Date();const labels=['일','월','화','수','목','금','토'];
+        const meds=getMeds();const recs=getRecs();
+        for(let i=-3;i<=3;i++){
+            const d=new Date(now);d.setDate(d.getDate()+i);
+            const ds=dateStr(d);
+            const anyTaken=meds.some(m=>(recs[m.id]||[]).includes(ds));
+            const div=document.createElement('div');
+            div.className='week-day'+(i===0?' today':'');
+            div.innerHTML=`<span class="wd-label">${labels[d.getDay()]}</span><span class="wd-num">${d.getDate()}</span><span class="wd-dot ${anyTaken?'taken':''}"></span>`;
+            strip.appendChild(div);
         }
+    }
 
-        function dateStr(d) {
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
+    // ===== TODAY PAGE =====
+    function renderToday(){
+        const now=new Date();
+        const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+        document.getElementById('todayDateText').textContent=`${months[now.getMonth()]} ${now.getDate()}일(오늘)`;
 
-        function todayStr() {
-            return dateStr(new Date());
-        }
+        const meds=getMeds();const today=todayStr();
 
-        function isTaken(date) {
-            return getRecords().includes(date);
-        }
+        // Med cards
+        const list=document.getElementById('medCardList');list.innerHTML='';
+        const recList=document.getElementById('recordedList');recList.innerHTML='';
+        let anyRecorded=false;
 
-        function addRecord(date) {
-            const records = getRecords();
-            if (!records.includes(date)) {
-                records.push(date);
-                records.sort();
-                saveRecords(records);
+        meds.forEach(med=>{
+            const taken=isTakenMed(med.id,today);
+
+            // Card
+            const card=document.createElement('div');
+            card.className='med-card';
+            card.style.background=taken?'var(--card-green)':'var(--card-blue)';
+            card.innerHTML=`
+                <div class="med-icon" style="background:${med.color}30">💊</div>
+                <div class="med-info">
+                    <div class="med-name">${med.name}</div>
+                    <div class="med-dose">${med.dosage}</div>
+                </div>
+                <div class="med-actions">
+                    ${taken?`<button class="ma-btn skip" onclick="removeMedRec('${med.id}','${today}');renderToday()">취소</button><button class="ma-btn taken">✓ 완료</button>`
+                    :`<button class="ma-btn take" onclick="addMedRec('${med.id}','${today}');renderToday();showToast('${med.name} 복용 기록!')">투여함</button>`}
+                </div>
+            `;
+            list.appendChild(card);
+
+            // Recorded
+            if(taken){
+                anyRecorded=true;
+                const rec=document.createElement('div');
+                rec.className='recorded-card';
+                rec.innerHTML=`<div class="recorded-item"><span class="ri-check">✅</span><span>${med.name}</span><span class="ri-dose">${med.dosage}</span></div>`;
+                recList.appendChild(rec);
             }
-        }
-
-        function removeRecord(date) {
-            const records = getRecords().filter(r => r !== date);
-            saveRecords(records);
-        }
-
-        // ============ NAVIGATION ============
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById('page-' + tab.dataset.page).classList.add('active');
-                if (tab.dataset.page === 'stats') renderStats();
-                if (tab.dataset.page === 'calendar') renderCalendar();
-            });
         });
 
-        // ============ TODAY PAGE ============
-        function updateToday() {
-            const now = new Date();
-            const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-            const weekdays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+        document.getElementById('noRecordMsg').style.display=anyRecorded?'none':'block';
 
-            document.getElementById('todayDate').textContent = `${now.getFullYear()}년 ${months[now.getMonth()]} ${now.getDate()}일`;
-            document.getElementById('todayWeekday').textContent = weekdays[now.getDay()];
+        // Summary
+        const sumList=document.getElementById('medSummaryList');sumList.innerHTML='';
+        meds.forEach(med=>{
+            const recs=getMedRecs(med.id);
+            const div=document.createElement('div');
+            div.className='med-manage';
+            div.onclick=()=>openEditMed(med.id);
+            div.innerHTML=`
+                <div class="mm-icon" style="background:${med.color}30">💊</div>
+                <div class="mm-info">
+                    <div class="mm-name">${med.name}</div>
+                    <div class="mm-dose">${med.dosage}</div>
+                    <div class="mm-count" style="color:var(--cyan)">전체 ${recs.length}알 복용</div>
+                </div>
+                <span class="mm-arrow">›</span>
+            `;
+            sumList.appendChild(div);
+        });
 
-            const taken = isTaken(todayStr());
-            const btn = document.getElementById('takeBtn');
-            const icon = document.getElementById('btnIcon');
-            const text = document.getElementById('btnText');
-            const status = document.getElementById('todayStatus');
+        // Total summary
+        const allRecs=meds.reduce((a,m)=>a+getMedRecs(m.id).length,0);
+        const thisMonth=meds.reduce((a,m)=>a+getMedRecs(m.id).filter(r=>r.startsWith(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`)).length,0);
+        const thisYear=meds.reduce((a,m)=>a+getMedRecs(m.id).filter(r=>r.startsWith(`${now.getFullYear()}`)).length,0);
 
-            if (taken) {
-                btn.className = 'take-btn taken';
-                icon.textContent = '✓';
-                text.textContent = '복용 완료';
-                status.textContent = '오늘 복용했어요! (터치하면 취소)';
-            } else {
-                btn.className = 'take-btn not-taken';
-                icon.textContent = '💊';
-                text.textContent = '복용하기';
-                status.textContent = '오늘 아직 복용하지 않았어요';
-            }
+        document.getElementById('summaryGrid').innerHTML=`
+            <div class="sum-grid">
+                <div class="sum-card"><div class="sc-label">이번 달</div><div class="sc-val">${thisMonth}</div><div class="sc-unit">알</div></div>
+                <div class="sum-card"><div class="sc-label">올해</div><div class="sc-val">${thisYear}</div><div class="sc-unit">알</div></div>
+                <div class="sum-card"><div class="sc-label">전체</div><div class="sc-val">${allRecs}</div><div class="sc-unit">알</div></div>
+            </div>
+        `;
 
-            // Summary
-            const records = getRecords();
-            const thisMonth = records.filter(r => r.startsWith(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`));
-            const thisYear = records.filter(r => r.startsWith(`${now.getFullYear()}`));
+        renderWeekStrip();
+    }
 
-            document.getElementById('monthCount').textContent = thisMonth.length;
-            document.getElementById('yearCount').textContent = thisYear.length;
-            document.getElementById('allCount').textContent = records.length;
-            document.getElementById('totalCount').textContent = `전체 복용: ${records.length}알`;
+    // ===== ADD/EDIT MED =====
+    function openAddMed(){
+        const mc=document.getElementById('modalContent');
+        mc.innerHTML=`
+            <h3>약 추가</h3>
+            <div class="form-group">
+                <label class="form-label">약 이름</label>
+                <input class="form-input" id="medNameInput" placeholder="약 이름 입력" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label">복용량</label>
+                <input class="form-input" id="medDoseInput" placeholder="예: 20mg, 500mg, 1정" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label">색상</label>
+                <div class="color-picker" id="colorPicker"></div>
+            </div>
+            <button class="m-btn primary" onclick="saveNewMed()">추가</button>
+            <button class="m-btn cancel" onclick="closeModal()">취소</button>
+        `;
+        renderColorPicker(MED_COLORS[getMeds().length%MED_COLORS.length]);
+        document.getElementById('modal').classList.add('active');
+        setTimeout(()=>document.getElementById('medNameInput').focus(),300);
+    }
 
-            if (records.length > 0) {
-                const last = records[records.length - 1];
-                const parts = last.split('-');
-                document.getElementById('lastTaken').textContent = `${parts[1]}/${parts[2]}`;
-            } else {
-                document.getElementById('lastTaken').textContent = '-';
-            }
+    function openEditMed(medId){
+        const med=getMeds().find(m=>m.id===medId);if(!med)return;
+        const recs=getMedRecs(medId);
+        const mc=document.getElementById('modalContent');
+        mc.innerHTML=`
+            <h3>약 편집</h3>
+            <div class="form-group">
+                <label class="form-label">약 이름</label>
+                <input class="form-input" id="medNameInput" value="${med.name}" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label">복용량</label>
+                <input class="form-input" id="medDoseInput" value="${med.dosage}" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label">색상</label>
+                <div class="color-picker" id="colorPicker"></div>
+            </div>
+            <div style="background:var(--gray6);border-radius:12px;padding:14px 16px;margin-bottom:16px;text-align:center;font-size:15px;color:var(--text3)">
+                전체 복용 기록: <strong style="color:var(--cyan)">${recs.length}알</strong>
+            </div>
+            <button class="m-btn primary" onclick="saveEditMed('${medId}')">저장</button>
+            <button class="m-btn danger" onclick="deleteMed('${medId}')">약 삭제</button>
+            <button class="m-btn cancel" onclick="closeModal()">취소</button>
+        `;
+        renderColorPicker(med.color);
+        document.getElementById('modal').classList.add('active');
+    }
+
+    let selectedColor='#5AC8FA';
+    function renderColorPicker(current){
+        selectedColor=current;
+        const picker=document.getElementById('colorPicker');picker.innerHTML='';
+        MED_COLORS.forEach(c=>{
+            const div=document.createElement('div');
+            div.className='color-opt'+(c===current?' selected':'');
+            div.style.cssText=`cursor:pointer`;
+            div.innerHTML=`<div style="width:30px;height:30px;border-radius:50%;background:${c};margin:0 auto"></div>`;
+            div.onclick=()=>{selectedColor=c;document.querySelectorAll('.color-opt').forEach(o=>o.classList.remove('selected'));div.classList.add('selected');};
+            picker.appendChild(div);
+        });
+    }
+
+    function saveNewMed(){
+        const name=document.getElementById('medNameInput').value.trim();
+        const dose=document.getElementById('medDoseInput').value.trim();
+        if(!name){showToast('약 이름을 입력하세요');return;}
+        const meds=getMeds();
+        meds.push({id:genId(),name,dosage:dose||'',color:selectedColor});
+        saveMeds(meds);closeModal();renderToday();showToast(`${name} 추가됨!`);
+    }
+
+    function saveEditMed(id){
+        const name=document.getElementById('medNameInput').value.trim();
+        const dose=document.getElementById('medDoseInput').value.trim();
+        if(!name){showToast('약 이름을 입력하세요');return;}
+        const meds=getMeds();
+        const med=meds.find(m=>m.id===id);
+        if(med){med.name=name;med.dosage=dose;med.color=selectedColor;}
+        saveMeds(meds);closeModal();renderToday();showToast('저장 완료!');
+    }
+
+    function deleteMed(id){
+        const meds=getMeds();
+        const med=meds.find(m=>m.id===id);
+        if(!confirm(`${med.name}을(를) 삭제하시겠어요?\n복용 기록도 함께 삭제됩니다.`))return;
+        saveMeds(meds.filter(m=>m.id!==id));
+        const r=getRecs();delete r[id];saveRecs(r);
+        closeModal();renderToday();showToast('삭제 완료');
+    }
+
+    // ===== CALENDAR =====
+    let calYear,calMonth,calMedFilter='all';
+    function initCalendar(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();}
+    function changeCalMonth(d){calMonth+=d;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+
+    function renderCalendar(){
+        // Filter
+        const filter=document.getElementById('calFilter');filter.innerHTML='';
+        const meds=getMeds();
+        const allBtn=document.createElement('button');
+        allBtn.className='cf-btn'+(calMedFilter==='all'?' active':'');
+        allBtn.textContent='전체';
+        allBtn.onclick=()=>{calMedFilter='all';renderCalendar();};
+        filter.appendChild(allBtn);
+        meds.forEach(m=>{
+            const btn=document.createElement('button');
+            btn.className='cf-btn'+(calMedFilter===m.id?' active':'');
+            btn.textContent=m.name;
+            btn.onclick=()=>{calMedFilter=m.id;renderCalendar();};
+            filter.appendChild(btn);
+        });
+
+        const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+        document.getElementById('calTitle').textContent=`${calYear}년 ${months[calMonth]}`;
+        const grid=document.getElementById('calDays');grid.innerHTML='';
+        const fd=new Date(calYear,calMonth,1).getDay();
+        const dim=new Date(calYear,calMonth+1,0).getDate();
+        const today=todayStr();
+
+        function isDayTaken(ds){
+            if(calMedFilter==='all') return meds.some(m=>getMedRecs(m.id).includes(ds));
+            return getMedRecs(calMedFilter).includes(ds);
+        }
+        function getFilteredRecs(){
+            if(calMedFilter==='all') return meds.flatMap(m=>getMedRecs(m.id));
+            return getMedRecs(calMedFilter);
         }
 
-        function toggleToday() {
-            const today = todayStr();
-            if (isTaken(today)) {
-                removeRecord(today);
-                showToast('복용 기록이 취소되었어요');
-            } else {
-                addRecord(today);
-                showToast('복용 기록 완료!');
-            }
-            updateToday();
-        }
-
-        // ============ CALENDAR PAGE ============
-        let calYear, calMonth;
-
-        function initCalendar() {
-            const now = new Date();
-            calYear = now.getFullYear();
-            calMonth = now.getMonth();
-        }
-
-        function changeCalMonth(delta) {
-            calMonth += delta;
-            if (calMonth < 0) { calMonth = 11; calYear--; }
-            if (calMonth > 11) { calMonth = 0; calYear++; }
-            renderCalendar();
-        }
-
-        function renderCalendar() {
-            const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-            document.getElementById('calTitle').textContent = `${calYear}년 ${months[calMonth]}`;
-
-            const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '';
-
-            // Weekday headers
-            ['일', '월', '화', '수', '목', '금', '토'].forEach(d => {
-                const el = document.createElement('div');
-                el.className = 'cal-weekday';
-                el.textContent = d;
-                grid.appendChild(el);
-            });
-
-            const firstDay = new Date(calYear, calMonth, 1).getDay();
-            const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-            const today = todayStr();
-            const records = getRecords();
-            let monthCount = 0;
-
-            // Empty cells
-            for (let i = 0; i < firstDay; i++) {
-                const el = document.createElement('div');
-                el.className = 'cal-day empty';
-                grid.appendChild(el);
-            }
-
-            // Day cells
-            for (let d = 1; d <= daysInMonth; d++) {
-                const el = document.createElement('div');
-                const ds = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                el.className = 'cal-day';
-                el.textContent = d;
-
-                if (records.includes(ds)) {
-                    el.classList.add('taken');
-                    monthCount++;
-                    const dot = document.createElement('div');
-                    dot.className = 'dot';
-                    el.appendChild(dot);
+        let mc=0;
+        for(let i=0;i<fd;i++){const e=document.createElement('div');e.className='cal-d empty';grid.appendChild(e);}
+        for(let d=1;d<=dim;d++){
+            const e=document.createElement('div');
+            const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            e.className='cal-d';e.textContent=d;
+            if(isDayTaken(ds)){e.classList.add('taken');mc++;}
+            if(ds===today)e.classList.add('today');
+            e.addEventListener('click',()=>{
+                if(calMedFilter!=='all'){
+                    if(isTakenMed(calMedFilter,ds)){removeMedRec(calMedFilter,ds);showToast('기록 취소');}
+                    else{addMedRec(calMedFilter,ds);showToast('기록 추가!');}
+                } else if(meds.length===1){
+                    if(isTakenMed(meds[0].id,ds)){removeMedRec(meds[0].id,ds);showToast('기록 취소');}
+                    else{addMedRec(meds[0].id,ds);showToast('기록 추가!');}
+                } else {
+                    showToast('약을 선택해주세요');return;
                 }
+                renderCalendar();renderToday();
+            });
+            grid.appendChild(e);
+        }
 
-                if (ds === today) {
-                    el.classList.add('today');
-                }
+        const allR=getFilteredRecs();
+        document.getElementById('calMC').textContent=mc;
+        const yr=[...new Set(allR)].filter(r=>r.startsWith(`${calYear}`));
+        document.getElementById('calYC').textContent=yr.length;
+        document.getElementById('calAC').textContent=[...new Set(allR)].length;
+    }
 
-                el.addEventListener('click', () => toggleDate(ds));
-                grid.appendChild(el);
+    // ===== STATS =====
+    let statsYear,statsMedFilter='all';
+    function initStats(){statsYear=new Date().getFullYear();}
+    function changeStatsYear(d){statsYear+=d;renderStats();}
+
+    function renderStats(){
+        // Filter
+        const filter=document.getElementById('statsFilter');filter.innerHTML='';
+        const meds=getMeds();
+        const allBtn=document.createElement('button');
+        allBtn.className='cf-btn'+(statsMedFilter==='all'?' active':'');
+        allBtn.textContent='전체';
+        allBtn.onclick=()=>{statsMedFilter='all';renderStats();};
+        filter.appendChild(allBtn);
+        meds.forEach(m=>{
+            const btn=document.createElement('button');
+            btn.className='cf-btn'+(statsMedFilter===m.id?' active':'');
+            btn.textContent=m.name;
+            btn.onclick=()=>{statsMedFilter=m.id;renderStats();};
+            filter.appendChild(btn);
+        });
+
+        document.getElementById('statsYear').textContent=statsYear+'년';
+        const records=statsMedFilter==='all'?meds.flatMap(m=>getMedRecs(m.id)):getMedRecs(statsMedFilter);
+        const sorted=[...records].sort();
+        const mc=Array(12).fill(0);
+        records.forEach(r=>{const[y,m]=r.split('-').map(Number);if(y===statsYear)mc[m-1]++;});
+        const total=mc.reduce((a,b)=>a+b,0);
+        document.getElementById('statsTotal').textContent=total+'알';
+        const max=Math.max(...mc,1);
+        const chart=document.getElementById('barChart');chart.innerHTML='';
+        mc.forEach(c=>{
+            const item=document.createElement('div');item.className='bar-item';
+            const bar=document.createElement('div');bar.className='bar-fill';
+            bar.style.height=c>0?(c/max*100)+'%':'0';
+            item.appendChild(bar);chart.appendChild(item);
+        });
+
+        const yc={};
+        records.forEach(r=>{const y=r.split('-')[0];yc[y]=(yc[y]||0)+1;});
+        const yl=document.getElementById('yearList');yl.innerHTML='';
+        Object.keys(yc).sort().reverse().forEach(y=>{
+            const item=document.createElement('div');item.className='yl-item';
+            item.innerHTML=`<span>${y}년</span><span class="yl-val">${yc[y]}알</span>`;
+            yl.appendChild(item);
+        });
+
+        const unique=[...new Set(sorted)].sort();
+        if(unique.length>=2){
+            let tot=0,mn=Infinity,mx=0;
+            for(let i=1;i<unique.length;i++){
+                const gap=Math.round((new Date(unique[i])-new Date(unique[i-1]))/86400000);
+                tot+=gap;if(gap<mn)mn=gap;if(gap>mx)mx=gap;
             }
-
-            document.getElementById('calMonthSummary').innerHTML =
-                `이번 달 복용: <strong>${monthCount}</strong>알`;
+            document.getElementById('avgInterval').textContent=(tot/(unique.length-1)).toFixed(1)+'일';
+            document.getElementById('intervalSub').textContent=`최소 ${mn}일 · 최대 ${mx}일`;
+        } else {
+            document.getElementById('avgInterval').textContent='-';
+            document.getElementById('intervalSub').textContent='';
         }
+    }
 
-        function toggleDate(ds) {
-            if (isTaken(ds)) {
-                removeRecord(ds);
-                showToast('기록 취소됨');
-            } else {
-                addRecord(ds);
-                showToast('복용 기록 추가!');
-            }
-            renderCalendar();
-            updateToday();
-        }
+    // ===== SETTINGS =====
+    function importOldData(){
+        const data=parseOldRecords();if(!data.length){showToast('데이터 없음');return;}
+        const r=getRecs();if(!r['iso'])r['iso']=[];
+        let a=0;data.forEach(d=>{if(!r['iso'].includes(d)){r['iso'].push(d);a++;}});
+        r['iso'].sort();saveRecs(r);renderToday();showToast(`${a}개 불러옴!`);
+    }
+    function parseOldRecords(){
+        const dates=[];
+        const add=(y,list)=>list.forEach(d=>{const[m,day]=d.split('-');dates.push(`${y}-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);});
+        add(2020,['1-1','3-1','5-1','7-1','9-1']);
+        add(2021,['1-25','1-30','2-2','2-11','2-17','2-25','3-6','3-15','3-19','3-20','3-29','4-6','4-24','4-28','5-1','5-19','5-30','6-6','6-8','7-21','7-23','7-25','7-30','8-5','8-9','8-15','8-21','8-27','9-2','9-9','9-26','9-29','10-7','10-23','11-15','11-18','11-25','12-1','12-3','12-15','12-20']);
+        add(2022,['1-2','1-8','1-13','1-19','1-26','2-8','2-14','2-21','2-28','3-4','3-9','3-15','3-17','3-22','3-26','3-31','4-4','4-14','4-16','4-21','4-23','4-26','4-29','5-3','5-8','5-15','5-17','5-22','5-28','6-5','6-11','6-13','6-19','6-24','6-29','7-2','7-9','7-10','7-17','7-22','7-27','8-1','8-8','8-9','8-14','8-20','8-24','9-2','9-11','9-30','10-3','10-11','10-13','10-23']);
+        add(2023,['3-7','3-10','3-15','3-22','3-24','3-29','4-3','4-6','4-8','4-10','4-14','4-18','4-22','4-27','4-30','5-4','5-8','5-12','5-14','5-18','5-20','5-24','5-31','6-2','6-5','6-12','6-16','6-25','6-28','7-2','7-9','7-12','7-14','7-20','7-22','7-24','7-31','8-5','8-7','8-9','8-14','8-17','8-26','8-30','9-2','9-5','9-10','9-14','9-19','9-23','10-2','11-14','11-19','11-25','11-30','12-14','12-27']);
+        add(2024,['1-12','1-15','1-17','1-26','2-1','2-5','2-9','2-11','2-13','2-18','2-24','3-1','3-5','3-9','3-12','3-15','3-24','3-28','4-2','4-6','4-9','4-12','4-18','4-30','5-3','5-12','5-15','5-21','5-27','6-1','6-7','6-12','6-21','6-23','7-5','7-11','7-16','7-24','7-31','8-8','8-13','8-20','8-24','8-27','9-1','9-6','9-8','9-10','9-16','9-21','9-24','10-4','10-7','10-10','10-11','10-19','10-22','10-28','11-1','11-4','11-10']);
+        add(2025,['3-16','3-22','3-25','3-29','4-2','4-4','4-6','4-19','4-28','5-3','5-8','5-13','5-19','5-27','5-31','6-5','6-8','6-13','6-16','6-20','6-22','6-23','6-25','6-28','7-1','7-4','7-6','7-8','7-10','7-14','7-15','7-18','7-20','7-22','7-24','7-27','7-30','8-2','8-6','8-10','8-15','8-22','8-25','8-27','8-28','9-1','9-5','9-12','9-16','9-20','9-25','10-1','10-7','11-12','11-15','11-21','11-26','12-3','12-8','12-23']);
+        add(2026,['1-6','1-14','1-28','2-3','2-6','2-11','2-26','3-4','3-6','3-11','3-13','3-18','3-20']);
+        return dates;
+    }
+    function exportData(){
+        const data={meds:getMeds(),records:getRecs(),exportDate:new Date().toISOString()};
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+        a.download=`med_backup_${todayStr()}.json`;a.click();showToast('백업 완료!');
+    }
+    function importBackup(){
+        const input=document.getElementById('fileInput');
+        input.onchange=e=>{
+            const file=e.target.files[0];if(!file)return;
+            const reader=new FileReader();
+            reader.onload=ev=>{
+                try{
+                    const data=JSON.parse(ev.target.result);
+                    if(data.meds)saveMeds(data.meds);
+                    if(data.records)saveRecs(data.records);
+                    renderToday();showToast('복원 완료!');
+                }catch(e){showToast('파일 오류');}
+            };reader.readAsText(file);input.value='';
+        };input.click();
+    }
+    function confirmReset(){
+        const mc=document.getElementById('modalContent');
+        mc.innerHTML=`
+            <h3>데이터 초기화</h3>
+            <p>모든 약과 복용 기록이 삭제됩니다.</p>
+            <button class="m-btn danger" onclick="doReset()">전체 삭제</button>
+            <button class="m-btn cancel" onclick="closeModal()">취소</button>
+        `;
+        document.getElementById('modal').classList.add('active');
+    }
+    function doReset(){
+        localStorage.removeItem(MEDS_KEY);localStorage.removeItem(RECS_KEY);
+        localStorage.removeItem('isotinon_initialized');localStorage.removeItem('isotinon_migrated_v2');
+        closeModal();renderToday();showToast('초기화 완료');
+    }
+    function closeModal(){document.getElementById('modal').classList.remove('active');}
+    function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
 
-        // ============ STATS PAGE ============
-        let statsYear;
-
-        function initStats() {
-            statsYear = new Date().getFullYear();
-        }
-
-        function changeStatsYear(delta) {
-            statsYear += delta;
-            renderStats();
-        }
-
-        function renderStats() {
-            document.getElementById('statsYear').textContent = statsYear + '년';
-            const records = getRecords();
-
-            // Monthly bar chart
-            const monthlyCounts = Array(12).fill(0);
-            records.forEach(r => {
-                const [y, m] = r.split('-').map(Number);
-                if (y === statsYear) {
-                    monthlyCounts[m - 1]++;
-                }
-            });
-
-            const maxCount = Math.max(...monthlyCounts, 1);
-            const barChart = document.getElementById('monthBarChart');
-            barChart.innerHTML = '';
-
-            monthlyCounts.forEach((count, i) => {
-                const col = document.createElement('div');
-                col.className = 'month-col';
-                const bar = document.createElement('div');
-                bar.className = 'month-bar-fill';
-                const height = count > 0 ? (count / maxCount) * 120 : 0;
-                bar.style.height = height + 'px';
-                if (count > 0) {
-                    const val = document.createElement('span');
-                    val.className = 'bar-value';
-                    val.textContent = count;
-                    bar.appendChild(val);
-                }
-                col.appendChild(bar);
-                barChart.appendChild(col);
-            });
-
-            // Year table
-            const yearCounts = {};
-            records.forEach(r => {
-                const y = parseInt(r.split('-')[0]);
-                yearCounts[y] = (yearCounts[y] || 0) + 1;
-            });
-
-            const years = Object.keys(yearCounts).sort();
-            const tbody = document.getElementById('yearTableBody');
-            tbody.innerHTML = '';
-
-            years.forEach(y => {
-                const count = yearCounts[y];
-                const ym = parseInt(y);
-                const yearRecords = records.filter(r => r.startsWith(y));
-                const months = new Set(yearRecords.map(r => r.split('-')[1]));
-                const avgPerMonth = months.size > 0 ? (count / months.size).toFixed(1) : 0;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${y}년</td><td class="highlight">${count}알</td><td>${avgPerMonth}알</td>`;
-                tbody.appendChild(tr);
-            });
-
-            // Interval stats
-            const intervalDiv = document.getElementById('intervalStats');
-            if (records.length >= 2) {
-                let totalDays = 0;
-                let minGap = Infinity;
-                let maxGap = 0;
-                for (let i = 1; i < records.length; i++) {
-                    const d1 = new Date(records[i - 1]);
-                    const d2 = new Date(records[i]);
-                    const gap = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
-                    totalDays += gap;
-                    if (gap < minGap) minGap = gap;
-                    if (gap > maxGap) maxGap = gap;
-                }
-                const avgGap = (totalDays / (records.length - 1)).toFixed(1);
-                intervalDiv.innerHTML = `
-                    평균 복용 간격: <strong style="color:#4A90D9">${avgGap}일</strong><br>
-                    <span style="font-size:12px; margin-top:4px; display:inline-block;">
-                        최소 ${minGap}일 / 최대 ${maxGap}일
-                    </span>
-                `;
-            } else {
-                intervalDiv.textContent = '데이터가 부족합니다';
-            }
-        }
-
-        // ============ SETTINGS ============
-        function importOldData() {
-            // Pre-load the existing data from the KakaoTalk memo format
-            const existingData = parseOldRecords();
-            if (existingData.length === 0) {
-                showToast('불러올 데이터가 없어요');
-                return;
-            }
-
-            const records = getRecords();
-            let added = 0;
-            existingData.forEach(d => {
-                if (!records.includes(d)) {
-                    records.push(d);
-                    added++;
-                }
-            });
-            records.sort();
-            saveRecords(records);
-            updateToday();
-            showToast(`${added}개의 기록을 불러왔어요!`);
-        }
-
-        function parseOldRecords() {
-            // Hardcoded existing records parsed from the KakaoTalk memo
-            const dates = [];
-
-            // 2020: 5 pills (no specific dates recorded)
-            // We'll skip 2020 since no dates are known
-
-            // 2021 (labeled as 2020 in memo)
-            const y2021 = [
-                '1-25','1-30','2-2','2-11','2-17','2-25','3-6','3-15','3-19','3-20','3-29',
-                '4-6','4-24','4-28','5-1','5-19','5-30','6-6','6-8',
-                '7-21','7-23','7-25','7-30','8-5','8-9','8-15','8-21','8-27',
-                '9-2','9-9','9-26','9-29','10-7','10-23',
-                '11-15','11-18','11-25','12-1','12-3','12-15','12-20'
-            ];
-            y2021.forEach(d => {
-                const [m, day] = d.split('-');
-                dates.push(`2021-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
-            });
-
-            // 2022
-            const y2022 = [
-                '1-2','1-8','1-13','1-19','1-26',
-                '2-8','2-14','2-21','2-28',
-                '3-4','3-9','3-15','3-17','3-22','3-26','3-31',
-                '4-4','4-14','4-16','4-21','4-23','4-26','4-29',
-                '5-3','5-8','5-15','5-17','5-22','5-28',
-                '6-5','6-11','6-13','6-19','6-24','6-29',
-                '7-2','7-9','7-10','7-17','7-22','7-27',
-                '8-1','8-8','8-9','8-14','8-20','8-24',
-                '9-2','9-11','9-30',
-                '10-3','10-11','10-13','10-23'
-            ];
-            y2022.forEach(d => {
-                const [m, day] = d.split('-');
-                dates.push(`2022-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
-            });
-
-            // 2023
-            const y2023 = [
-                '3-7','3-10','3-15','3-22','3-24','3-29',
-                '4-3','4-6','4-8','4-10','4-14','4-18','4-22','4-27','4-30',
-                '5-4','5-8','5-12','5-14','5-18','5-20','5-24','5-31',
-                '6-2','6-5','6-12','6-16','6-25','6-28',
-                '7-2','7-9','7-12','7-14','7-20','7-22','7-24','7-31',
-                '8-5','8-7','8-9','8-14','8-17','8-26','8-30',
-                '9-2','9-5','9-10','9-14','9-19','9-23',
-                '10-2',
-                '11-14','11-19','11-25','11-30',
-                '12-14','12-27'
-            ];
-            y2023.forEach(d => {
-                const [m, day] = d.split('-');
-                dates.push(`2023-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
-            });
-
-            // 2024
-            const y2024 = [
-                '1-12','1-15','1-17','1-26',
-                '2-1','2-5','2-9','2-11','2-13','2-18','2-24',
-                '3-1','3-5','3-9','3-12','3-15','3-24','3-28',
-                '4-2','4-6','4-9','4-12','4-18','4-30',
-                '5-3','5-12','5-15','5-21','5-27',
-                '6-1','6-7','6-12','6-21','6-23',
-                '7-5','7-11','7-16','7-24','7-31',
-                '8-8','8-13','8-20','8-24','8-27',
-                '9-1','9-6','9-8','9-10','9-16','9-21','9-24',
-                '10-4','10-7','10-10','10-11','10-19','10-22','10-28',
-                '11-1','11-4','11-10'
-            ];
-            y2024.forEach(d => {
-                const [m, day] = d.split('-');
-                dates.push(`2024-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
-            });
-
-            // 2025
-            const y2025 = [
-                '3-16','3-22','3-25','3-29',
-                '4-2','4-4','4-6','4-19','4-28',
-                '5-3','5-8','5-13','5-19','5-27','5-31',
-                '6-5','6-8','6-13','6-16','6-20','6-22','6-23','6-25','6-28',
-                '7-1','7-4','7-6','7-8','7-10','7-14','7-15','7-18','7-20','7-22','7-24','7-27','7-30',
-                '8-2','8-6','8-10','8-15','8-22','8-25','8-27','8-28',
-                '9-1','9-5','9-12','9-16','9-20','9-25',
-                '10-1','10-7',
-                '11-12','11-15','11-21','11-26',
-                '12-3','12-8','12-23'
-            ];
-            y2025.forEach(d => {
-                const [m, day] = d.split('-');
-                dates.push(`2025-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
-            });
-
-            // 2026
-            const y2026 = [
-                '1-6','1-14','1-28',
-                '2-3','2-6','2-11','2-26',
-                '3-4','3-6','3-11','3-13','3-18','3-20'
-            ];
-            y2026.forEach(d => {
-                const [m, day] = d.split('-');
-                dates.push(`2026-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
-            });
-
-            // Add 5 generic records for 2020 (no specific dates known)
-            // We'll use placeholder dates spread across 2020
-            const y2020 = ['1-1','3-1','5-1','7-1','9-1'];
-            y2020.forEach(d => {
-                const [m, day] = d.split('-');
-                dates.push(`2020-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
-            });
-
-            return dates;
-        }
-
-        function exportData() {
-            const records = getRecords();
-            const data = JSON.stringify({ records, exportDate: new Date().toISOString() }, null, 2);
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `isotinon_backup_${todayStr()}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('백업 파일 다운로드 완료!');
-        }
-
-        function importBackup() {
-            const input = document.getElementById('fileInput');
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    try {
-                        const data = JSON.parse(ev.target.result);
-                        if (data.records && Array.isArray(data.records)) {
-                            const records = getRecords();
-                            let added = 0;
-                            data.records.forEach(d => {
-                                if (!records.includes(d)) {
-                                    records.push(d);
-                                    added++;
-                                }
-                            });
-                            records.sort();
-                            saveRecords(records);
-                            updateToday();
-                            showToast(`${added}개의 기록을 복원했어요!`);
-                        }
-                    } catch (err) {
-                        showToast('파일 형식이 올바르지 않아요');
-                    }
-                };
-                reader.readAsText(file);
-                input.value = '';
-            };
-            input.click();
-        }
-
-        let pendingModalAction = null;
-
-        function confirmReset() {
-            document.getElementById('modalTitle').textContent = '데이터 초기화';
-            document.getElementById('modalMessage').textContent = '모든 복용 기록이 삭제됩니다. 정말 초기화하시겠어요?';
-            document.getElementById('modalConfirm').className = 'confirm danger';
-            pendingModalAction = () => {
-                localStorage.removeItem(STORAGE_KEY);
-                updateToday();
-                showToast('모든 데이터가 초기화되었어요');
-            };
-            document.getElementById('modal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('modal').classList.remove('active');
-            pendingModalAction = null;
-        }
-
-        function modalAction() {
-            if (pendingModalAction) pendingModalAction();
-            closeModal();
-        }
-
-        // ============ TOAST ============
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-
-        // ============ INIT ============
-        // 첫 실행 시 기존 기록 자동 로드
-        if (!localStorage.getItem('isotinon_initialized')) {
-            importOldData();
-            localStorage.setItem('isotinon_initialized', 'true');
-        }
-        initCalendar();
-        initStats();
-        updateToday();
-        renderCalendar();
+    // ===== INIT =====
+    migrateOldData();
+    if(!localStorage.getItem('isotinon_initialized')){importOldData();localStorage.setItem('isotinon_initialized','true');}
+    initCalendar();initStats();renderToday();renderCalendar();
     </script>
 </body>
 </html>
