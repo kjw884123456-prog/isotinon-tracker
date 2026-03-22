@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4A90D9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>이소티논 복용 기록</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f4f8;
+            color: #333;
+            min-height: 100vh;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #4A90D9, #357ABD);
+            color: white;
+            padding: 20px 16px 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            background: white;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 62px;
+            z-index: 99;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-tab.active {
+            color: #4A90D9;
+            border-bottom-color: #4A90D9;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+            padding: 16px;
+            padding-bottom: 40px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Today Page */
+        .today-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+        }
+
+        .today-date {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .today-weekday {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 24px;
+        }
+
+        .take-btn {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: none;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin: 0 auto 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        .take-btn.not-taken {
+            background: linear-gradient(135deg, #4A90D9, #357ABD);
+            color: white;
+        }
+
+        .take-btn.not-taken:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .take-btn.taken {
+            background: linear-gradient(135deg, #27ae60, #219a52);
+            color: white;
+        }
+
+        .take-btn.taken:active {
+            transform: scale(0.95);
+        }
+
+        .take-btn .btn-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .take-btn .btn-text {
+            font-size: 18px;
+        }
+
+        .today-status {
+            font-size: 15px;
+            color: #888;
+        }
+
+        /* Summary Cards */
+        .summary-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .summary-card .label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .summary-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #4A90D9;
+        }
+
+        .summary-card .unit {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Stats Page */
+        .stats-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .stats-section h2 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .year-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .year-selector button {
+            background: #4A90D9;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .year-selector .year-text {
+            font-size: 22px;
+            font-weight: 700;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .month-bar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 140px;
+            padding: 0 4px;
+            margin-bottom: 8px;
+        }
+
+        .month-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .month-bar-fill {
+            width: 20px;
+            background: linear-gradient(to top, #4A90D9, #6db3f8);
+            border-radius: 4px 4px 0 0;
+            min-height: 0;
+            transition: height 0.5s ease;
+            position: relative;
+        }
+
+        .month-bar-fill .bar-value {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            font-weight: 600;
+            color: #4A90D9;
+        }
+
+        .month-label {
+            font-size: 11px;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        /* Year Summary Table */
+        .year-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .year-table th, .year-table td {
+            padding: 10px 8px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .year-table th {
+            color: #888;
+            font-weight: 600;
+            border-bottom: 2px solid #eee;
+        }
+
+        .year-table td {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .year-table .highlight {
+            color: #4A90D9;
+            font-weight: 700;
+        }
+
+        /* Calendar Page */
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .calendar-header button {
+            background: #4A90D9;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-header .cal-title {
+            font-size: 18px;
+            font-weight: 700;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .cal-weekday {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            font-weight: 600;
+            padding: 8px 0;
+        }
+
+        .cal-day {
+            text-align: center;
+            padding: 10px 4px;
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .cal-day.empty {
+            cursor: default;
+        }
+
+        .cal-day.taken {
+            background: #e8f5e9;
+            color: #27ae60;
+            font-weight: 700;
+        }
+
+        .cal-day.today {
+            border: 2px solid #4A90D9;
+            font-weight: 700;
+        }
+
+        .cal-day.taken.today {
+            border-color: #27ae60;
+        }
+
+        .cal-day .dot {
+            display: none;
+            width: 6px;
+            height: 6px;
+            background: #27ae60;
+            border-radius: 50%;
+            margin: 2px auto 0;
+        }
+
+        .cal-day.taken .dot {
+            display: block;
+        }
+
+        /* Calendar month summary */
+        .cal-month-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .cal-month-summary strong {
+            color: #4A90D9;
+            font-size: 20px;
+        }
+
+        /* Settings Page */
+        .settings-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .settings-section h2 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .settings-btn {
+            width: 100%;
+            padding: 14px;
+            background: #4A90D9;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .settings-btn.danger {
+            background: #e74c3c;
+        }
+
+        .settings-btn:active {
+            opacity: 0.8;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 16px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .modal p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .modal-buttons .cancel {
+            background: #eee;
+            color: #666;
+        }
+
+        .modal-buttons .confirm {
+            background: #4A90D9;
+            color: white;
+        }
+
+        .modal-buttons .confirm.danger {
+            background: #e74c3c;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            z-index: 300;
+            transition: transform 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>이소티논 복용 기록</h1>
+        <div class="subtitle" id="totalCount">전체 복용: 0알</div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-tabs">
+        <button class="nav-tab active" data-page="today">오늘</button>
+        <button class="nav-tab" data-page="calendar">달력</button>
+        <button class="nav-tab" data-page="stats">통계</button>
+        <button class="nav-tab" data-page="settings">설정</button>
+    </div>
+
+    <!-- Today Page -->
+    <div class="page active" id="page-today">
+        <div class="today-card">
+            <div class="today-date" id="todayDate"></div>
+            <div class="today-weekday" id="todayWeekday"></div>
+            <button class="take-btn not-taken" id="takeBtn" onclick="toggleToday()">
+                <span class="btn-icon" id="btnIcon">💊</span>
+                <span class="btn-text" id="btnText">복용하기</span>
+            </button>
+            <div class="today-status" id="todayStatus">오늘 아직 복용하지 않았어요</div>
+        </div>
+
+        <div class="summary-row">
+            <div class="summary-card">
+                <div class="label">이번 달 복용</div>
+                <div><span class="value" id="monthCount">0</span> <span class="unit">알</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="label">올해 복용</div>
+                <div><span class="value" id="yearCount">0</span> <span class="unit">알</span></div>
+            </div>
+        </div>
+
+        <div class="summary-row">
+            <div class="summary-card">
+                <div class="label">전체 누적</div>
+                <div><span class="value" id="allCount">0</span> <span class="unit">알</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="label">마지막 복용</div>
+                <div><span class="value" id="lastTaken" style="font-size:16px;">-</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Page -->
+    <div class="page" id="page-calendar">
+        <div class="calendar-header">
+            <button onclick="changeCalMonth(-1)">◀</button>
+            <span class="cal-title" id="calTitle"></span>
+            <button onclick="changeCalMonth(1)">▶</button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <div class="cal-month-summary" id="calMonthSummary"></div>
+    </div>
+
+    <!-- Stats Page -->
+    <div class="page" id="page-stats">
+        <div class="stats-section">
+            <h2>월별 복용량</h2>
+            <div class="year-selector">
+                <button onclick="changeStatsYear(-1)">◀</button>
+                <span class="year-text" id="statsYear"></span>
+                <button onclick="changeStatsYear(1)">▶</button>
+            </div>
+            <div class="month-bar" id="monthBarChart"></div>
+            <div style="display:flex;justify-content:space-between;padding:0 4px;">
+                <span class="month-label">1</span><span class="month-label">2</span><span class="month-label">3</span>
+                <span class="month-label">4</span><span class="month-label">5</span><span class="month-label">6</span>
+                <span class="month-label">7</span><span class="month-label">8</span><span class="month-label">9</span>
+                <span class="month-label">10</span><span class="month-label">11</span><span class="month-label">12</span>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h2>연도별 총 복용량</h2>
+            <table class="year-table" id="yearTable">
+                <thead>
+                    <tr><th>연도</th><th>복용 횟수</th><th>월평균</th></tr>
+                </thead>
+                <tbody id="yearTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="stats-section">
+            <h2>복용 간격</h2>
+            <div id="intervalStats" style="text-align:center; color:#666; font-size:14px;"></div>
+        </div>
+    </div>
+
+    <!-- Settings Page -->
+    <div class="page" id="page-settings">
+        <div class="settings-section">
+            <h2>데이터 관리</h2>
+            <button class="settings-btn" onclick="importOldData()">기존 기록 불러오기 (카톡 메모)</button>
+            <button class="settings-btn" onclick="exportData()">데이터 내보내기 (백업)</button>
+            <button class="settings-btn" onclick="importBackup()">백업 데이터 복원</button>
+            <button class="settings-btn danger" onclick="confirmReset()">전체 데이터 초기화</button>
+        </div>
+        <div class="settings-section">
+            <h2>정보</h2>
+            <p style="font-size:13px; color:#888; margin:0;">
+                이소티논 복용 기록 앱 v1.0<br>
+                데이터는 이 기기에 저장됩니다.
+            </p>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h3 id="modalTitle">확인</h3>
+            <p id="modalMessage">정말 실행하시겠어요?</p>
+            <div class="modal-buttons">
+                <button class="cancel" onclick="closeModal()">취소</button>
+                <button class="confirm" id="modalConfirm" onclick="modalAction()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="fileInput" accept=".json,.txt" style="display:none">
+
+    <script>
+        // ============ DATA ============
+        const STORAGE_KEY = 'isotinon_records';
+
+        function getRecords() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveRecords(records) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        }
+
+        function dateStr(d) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function todayStr() {
+            return dateStr(new Date());
+        }
+
+        function isTaken(date) {
+            return getRecords().includes(date);
+        }
+
+        function addRecord(date) {
+            const records = getRecords();
+            if (!records.includes(date)) {
+                records.push(date);
+                records.sort();
+                saveRecords(records);
+            }
+        }
+
+        function removeRecord(date) {
+            const records = getRecords().filter(r => r !== date);
+            saveRecords(records);
+        }
+
+        // ============ NAVIGATION ============
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('page-' + tab.dataset.page).classList.add('active');
+                if (tab.dataset.page === 'stats') renderStats();
+                if (tab.dataset.page === 'calendar') renderCalendar();
+            });
+        });
+
+        // ============ TODAY PAGE ============
+        function updateToday() {
+            const now = new Date();
+            const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            const weekdays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+
+            document.getElementById('todayDate').textContent = `${now.getFullYear()}년 ${months[now.getMonth()]} ${now.getDate()}일`;
+            document.getElementById('todayWeekday').textContent = weekdays[now.getDay()];
+
+            const taken = isTaken(todayStr());
+            const btn = document.getElementById('takeBtn');
+            const icon = document.getElementById('btnIcon');
+            const text = document.getElementById('btnText');
+            const status = document.getElementById('todayStatus');
+
+            if (taken) {
+                btn.className = 'take-btn taken';
+                icon.textContent = '✓';
+                text.textContent = '복용 완료';
+                status.textContent = '오늘 복용했어요! (터치하면 취소)';
+            } else {
+                btn.className = 'take-btn not-taken';
+                icon.textContent = '💊';
+                text.textContent = '복용하기';
+                status.textContent = '오늘 아직 복용하지 않았어요';
+            }
+
+            // Summary
+            const records = getRecords();
+            const thisMonth = records.filter(r => r.startsWith(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`));
+            const thisYear = records.filter(r => r.startsWith(`${now.getFullYear()}`));
+
+            document.getElementById('monthCount').textContent = thisMonth.length;
+            document.getElementById('yearCount').textContent = thisYear.length;
+            document.getElementById('allCount').textContent = records.length;
+            document.getElementById('totalCount').textContent = `전체 복용: ${records.length}알`;
+
+            if (records.length > 0) {
+                const last = records[records.length - 1];
+                const parts = last.split('-');
+                document.getElementById('lastTaken').textContent = `${parts[1]}/${parts[2]}`;
+            } else {
+                document.getElementById('lastTaken').textContent = '-';
+            }
+        }
+
+        function toggleToday() {
+            const today = todayStr();
+            if (isTaken(today)) {
+                removeRecord(today);
+                showToast('복용 기록이 취소되었어요');
+            } else {
+                addRecord(today);
+                showToast('복용 기록 완료!');
+            }
+            updateToday();
+        }
+
+        // ============ CALENDAR PAGE ============
+        let calYear, calMonth;
+
+        function initCalendar() {
+            const now = new Date();
+            calYear = now.getFullYear();
+            calMonth = now.getMonth();
+        }
+
+        function changeCalMonth(delta) {
+            calMonth += delta;
+            if (calMonth < 0) { calMonth = 11; calYear--; }
+            if (calMonth > 11) { calMonth = 0; calYear++; }
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            document.getElementById('calTitle').textContent = `${calYear}년 ${months[calMonth]}`;
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            // Weekday headers
+            ['일', '월', '화', '수', '목', '금', '토'].forEach(d => {
+                const el = document.createElement('div');
+                el.className = 'cal-weekday';
+                el.textContent = d;
+                grid.appendChild(el);
+            });
+
+            const firstDay = new Date(calYear, calMonth, 1).getDay();
+            const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+            const today = todayStr();
+            const records = getRecords();
+            let monthCount = 0;
+
+            // Empty cells
+            for (let i = 0; i < firstDay; i++) {
+                const el = document.createElement('div');
+                el.className = 'cal-day empty';
+                grid.appendChild(el);
+            }
+
+            // Day cells
+            for (let d = 1; d <= daysInMonth; d++) {
+                const el = document.createElement('div');
+                const ds = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                el.className = 'cal-day';
+                el.textContent = d;
+
+                if (records.includes(ds)) {
+                    el.classList.add('taken');
+                    monthCount++;
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    el.appendChild(dot);
+                }
+
+                if (ds === today) {
+                    el.classList.add('today');
+                }
+
+                el.addEventListener('click', () => toggleDate(ds));
+                grid.appendChild(el);
+            }
+
+            document.getElementById('calMonthSummary').innerHTML =
+                `이번 달 복용: <strong>${monthCount}</strong>알`;
+        }
+
+        function toggleDate(ds) {
+            if (isTaken(ds)) {
+                removeRecord(ds);
+                showToast('기록 취소됨');
+            } else {
+                addRecord(ds);
+                showToast('복용 기록 추가!');
+            }
+            renderCalendar();
+            updateToday();
+        }
+
+        // ============ STATS PAGE ============
+        let statsYear;
+
+        function initStats() {
+            statsYear = new Date().getFullYear();
+        }
+
+        function changeStatsYear(delta) {
+            statsYear += delta;
+            renderStats();
+        }
+
+        function renderStats() {
+            document.getElementById('statsYear').textContent = statsYear + '년';
+            const records = getRecords();
+
+            // Monthly bar chart
+            const monthlyCounts = Array(12).fill(0);
+            records.forEach(r => {
+                const [y, m] = r.split('-').map(Number);
+                if (y === statsYear) {
+                    monthlyCounts[m - 1]++;
+                }
+            });
+
+            const maxCount = Math.max(...monthlyCounts, 1);
+            const barChart = document.getElementById('monthBarChart');
+            barChart.innerHTML = '';
+
+            monthlyCounts.forEach((count, i) => {
+                const col = document.createElement('div');
+                col.className = 'month-col';
+                const bar = document.createElement('div');
+                bar.className = 'month-bar-fill';
+                const height = count > 0 ? (count / maxCount) * 120 : 0;
+                bar.style.height = height + 'px';
+                if (count > 0) {
+                    const val = document.createElement('span');
+                    val.className = 'bar-value';
+                    val.textContent = count;
+                    bar.appendChild(val);
+                }
+                col.appendChild(bar);
+                barChart.appendChild(col);
+            });
+
+            // Year table
+            const yearCounts = {};
+            records.forEach(r => {
+                const y = parseInt(r.split('-')[0]);
+                yearCounts[y] = (yearCounts[y] || 0) + 1;
+            });
+
+            const years = Object.keys(yearCounts).sort();
+            const tbody = document.getElementById('yearTableBody');
+            tbody.innerHTML = '';
+
+            years.forEach(y => {
+                const count = yearCounts[y];
+                const ym = parseInt(y);
+                const yearRecords = records.filter(r => r.startsWith(y));
+                const months = new Set(yearRecords.map(r => r.split('-')[1]));
+                const avgPerMonth = months.size > 0 ? (count / months.size).toFixed(1) : 0;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${y}년</td><td class="highlight">${count}알</td><td>${avgPerMonth}알</td>`;
+                tbody.appendChild(tr);
+            });
+
+            // Interval stats
+            const intervalDiv = document.getElementById('intervalStats');
+            if (records.length >= 2) {
+                let totalDays = 0;
+                let minGap = Infinity;
+                let maxGap = 0;
+                for (let i = 1; i < records.length; i++) {
+                    const d1 = new Date(records[i - 1]);
+                    const d2 = new Date(records[i]);
+                    const gap = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+                    totalDays += gap;
+                    if (gap < minGap) minGap = gap;
+                    if (gap > maxGap) maxGap = gap;
+                }
+                const avgGap = (totalDays / (records.length - 1)).toFixed(1);
+                intervalDiv.innerHTML = `
+                    평균 복용 간격: <strong style="color:#4A90D9">${avgGap}일</strong><br>
+                    <span style="font-size:12px; margin-top:4px; display:inline-block;">
+                        최소 ${minGap}일 / 최대 ${maxGap}일
+                    </span>
+                `;
+            } else {
+                intervalDiv.textContent = '데이터가 부족합니다';
+            }
+        }
+
+        // ============ SETTINGS ============
+        function importOldData() {
+            // Pre-load the existing data from the KakaoTalk memo format
+            const existingData = parseOldRecords();
+            if (existingData.length === 0) {
+                showToast('불러올 데이터가 없어요');
+                return;
+            }
+
+            const records = getRecords();
+            let added = 0;
+            existingData.forEach(d => {
+                if (!records.includes(d)) {
+                    records.push(d);
+                    added++;
+                }
+            });
+            records.sort();
+            saveRecords(records);
+            updateToday();
+            showToast(`${added}개의 기록을 불러왔어요!`);
+        }
+
+        function parseOldRecords() {
+            // Hardcoded existing records parsed from the KakaoTalk memo
+            const dates = [];
+
+            // 2020: 5 pills (no specific dates recorded)
+            // We'll skip 2020 since no dates are known
+
+            // 2021 (labeled as 2020 in memo)
+            const y2021 = [
+                '1-25','1-30','2-2','2-11','2-17','2-25','3-6','3-15','3-19','3-20','3-29',
+                '4-6','4-24','4-28','5-1','5-19','5-30','6-6','6-8',
+                '7-21','7-23','7-25','7-30','8-5','8-9','8-15','8-21','8-27',
+                '9-2','9-9','9-26','9-29','10-7','10-23',
+                '11-15','11-18','11-25','12-1','12-3','12-15','12-20'
+            ];
+            y2021.forEach(d => {
+                const [m, day] = d.split('-');
+                dates.push(`2021-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
+            });
+
+            // 2022
+            const y2022 = [
+                '1-2','1-8','1-13','1-19','1-26',
+                '2-8','2-14','2-21','2-28',
+                '3-4','3-9','3-15','3-17','3-22','3-26','3-31',
+                '4-4','4-14','4-16','4-21','4-23','4-26','4-29',
+                '5-3','5-8','5-15','5-17','5-22','5-28',
+                '6-5','6-11','6-13','6-19','6-24','6-29',
+                '7-2','7-9','7-10','7-17','7-22','7-27',
+                '8-1','8-8','8-9','8-14','8-20','8-24',
+                '9-2','9-11','9-30',
+                '10-3','10-11','10-13','10-23'
+            ];
+            y2022.forEach(d => {
+                const [m, day] = d.split('-');
+                dates.push(`2022-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
+            });
+
+            // 2023
+            const y2023 = [
+                '3-7','3-10','3-15','3-22','3-24','3-29',
+                '4-3','4-6','4-8','4-10','4-14','4-18','4-22','4-27','4-30',
+                '5-4','5-8','5-12','5-14','5-18','5-20','5-24','5-31',
+                '6-2','6-5','6-12','6-16','6-25','6-28',
+                '7-2','7-9','7-12','7-14','7-20','7-22','7-24','7-31',
+                '8-5','8-7','8-9','8-14','8-17','8-26','8-30',
+                '9-2','9-5','9-10','9-14','9-19','9-23',
+                '10-2',
+                '11-14','11-19','11-25','11-30',
+                '12-14','12-27'
+            ];
+            y2023.forEach(d => {
+                const [m, day] = d.split('-');
+                dates.push(`2023-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
+            });
+
+            // 2024
+            const y2024 = [
+                '1-12','1-15','1-17','1-26',
+                '2-1','2-5','2-9','2-11','2-13','2-18','2-24',
+                '3-1','3-5','3-9','3-12','3-15','3-24','3-28',
+                '4-2','4-6','4-9','4-12','4-18','4-30',
+                '5-3','5-12','5-15','5-21','5-27',
+                '6-1','6-7','6-12','6-21','6-23',
+                '7-5','7-11','7-16','7-24','7-31',
+                '8-8','8-13','8-20','8-24','8-27',
+                '9-1','9-6','9-8','9-10','9-16','9-21','9-24',
+                '10-4','10-7','10-10','10-11','10-19','10-22','10-28',
+                '11-1','11-4','11-10'
+            ];
+            y2024.forEach(d => {
+                const [m, day] = d.split('-');
+                dates.push(`2024-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
+            });
+
+            // 2025
+            const y2025 = [
+                '3-16','3-22','3-25','3-29',
+                '4-2','4-4','4-6','4-19','4-28',
+                '5-3','5-8','5-13','5-19','5-27','5-31',
+                '6-5','6-8','6-13','6-16','6-20','6-22','6-23','6-25','6-28',
+                '7-1','7-4','7-6','7-8','7-10','7-14','7-15','7-18','7-20','7-22','7-24','7-27','7-30',
+                '8-2','8-6','8-10','8-15','8-22','8-25','8-27','8-28',
+                '9-1','9-5','9-12','9-16','9-20','9-25',
+                '10-1','10-7',
+                '11-12','11-15','11-21','11-26',
+                '12-3','12-8','12-23'
+            ];
+            y2025.forEach(d => {
+                const [m, day] = d.split('-');
+                dates.push(`2025-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
+            });
+
+            // 2026
+            const y2026 = [
+                '1-6','1-14','1-28',
+                '2-3','2-6','2-11','2-26',
+                '3-4','3-6','3-11','3-13','3-18','3-20'
+            ];
+            y2026.forEach(d => {
+                const [m, day] = d.split('-');
+                dates.push(`2026-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
+            });
+
+            // Add 5 generic records for 2020 (no specific dates known)
+            // We'll use placeholder dates spread across 2020
+            const y2020 = ['1-1','3-1','5-1','7-1','9-1'];
+            y2020.forEach(d => {
+                const [m, day] = d.split('-');
+                dates.push(`2020-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);
+            });
+
+            return dates;
+        }
+
+        function exportData() {
+            const records = getRecords();
+            const data = JSON.stringify({ records, exportDate: new Date().toISOString() }, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `isotinon_backup_${todayStr()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('백업 파일 다운로드 완료!');
+        }
+
+        function importBackup() {
+            const input = document.getElementById('fileInput');
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (data.records && Array.isArray(data.records)) {
+                            const records = getRecords();
+                            let added = 0;
+                            data.records.forEach(d => {
+                                if (!records.includes(d)) {
+                                    records.push(d);
+                                    added++;
+                                }
+                            });
+                            records.sort();
+                            saveRecords(records);
+                            updateToday();
+                            showToast(`${added}개의 기록을 복원했어요!`);
+                        }
+                    } catch (err) {
+                        showToast('파일 형식이 올바르지 않아요');
+                    }
+                };
+                reader.readAsText(file);
+                input.value = '';
+            };
+            input.click();
+        }
+
+        let pendingModalAction = null;
+
+        function confirmReset() {
+            document.getElementById('modalTitle').textContent = '데이터 초기화';
+            document.getElementById('modalMessage').textContent = '모든 복용 기록이 삭제됩니다. 정말 초기화하시겠어요?';
+            document.getElementById('modalConfirm').className = 'confirm danger';
+            pendingModalAction = () => {
+                localStorage.removeItem(STORAGE_KEY);
+                updateToday();
+                showToast('모든 데이터가 초기화되었어요');
+            };
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            pendingModalAction = null;
+        }
+
+        function modalAction() {
+            if (pendingModalAction) pendingModalAction();
+            closeModal();
+        }
+
+        // ============ TOAST ============
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // ============ INIT ============
+        // 첫 실행 시 기존 기록 자동 로드
+        if (!localStorage.getItem('isotinon_initialized')) {
+            importOldData();
+            localStorage.setItem('isotinon_initialized', 'true');
+        }
+        initCalendar();
+        initStats();
+        updateToday();
+        renderCalendar();
+    </script>
+</body>
+</html>
