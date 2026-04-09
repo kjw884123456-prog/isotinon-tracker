@@ -119,7 +119,9 @@
         .year-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px}
         .year-nav button{width:28px;height:28px;border-radius:50%;border:none;background:rgba(0,0,0,0.05);color:var(--blue);font-size:12px;cursor:pointer}
         .year-nav span{font-size:17px;font-weight:600;min-width:60px;text-align:center}
-        .bar-chart{display:flex;align-items:flex-end;height:100px;gap:4px}
+        .chart-wrap{display:flex;gap:6px}
+        .y-axis{display:flex;flex-direction:column;justify-content:space-between;height:100px;font-size:10px;color:var(--text3);text-align:right;min-width:18px}
+        .bar-chart{flex:1;display:flex;align-items:flex-end;height:100px;gap:4px}
         .bar-item{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
         .bar-fill{width:100%;max-width:22px;background:var(--cyan);border-radius:4px 4px 0 0;transition:height 0.4s ease}
         .bar-lbl{font-size:10px;color:var(--text3);margin-top:6px;text-align:center}
@@ -237,7 +239,10 @@
                     <button onclick="changeStatsYear(1)">▶</button>
                 </div>
                 <div class="cc-value" id="statsTotal">0알</div>
-                <div class="bar-chart" id="barChart"></div>
+                <div class="chart-wrap">
+                    <div class="y-axis" id="yAxis"></div>
+                    <div class="bar-chart" id="barChart"></div>
+                </div>
             </div>
             <div class="year-list" id="yearList"></div>
             <div class="interval-card">
@@ -642,6 +647,8 @@
         const total=mc.reduce((a,b)=>a+b,0);
         document.getElementById('statsTotal').textContent=total+'알';
         const max=Math.max(...mc,1);
+        const yAxis=document.getElementById('yAxis');
+        yAxis.innerHTML=`<span>${max}</span><span>${Math.round(max/2)}</span><span>0</span>`;
         const chart=document.getElementById('barChart');chart.innerHTML='';
         mc.forEach((c,i)=>{
             const item=document.createElement('div');item.className='bar-item';
