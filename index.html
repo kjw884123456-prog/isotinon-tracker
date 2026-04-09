@@ -128,6 +128,15 @@
         .year-list{background:var(--gray6);border-radius:16px;overflow:hidden;margin-bottom:16px}
         .yl-item{display:flex;justify-content:space-between;padding:14px 20px;border-bottom:0.5px solid var(--gray5);font-size:17px}
         .yl-item:last-child{border:none}.yl-item .yl-val{color:var(--cyan);font-weight:600}
+        .goal-card{background:var(--gray6);border-radius:16px;padding:20px;margin-bottom:16px}
+        .goal-card .gc-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px}
+        .goal-card .gc-sub{font-size:12px;color:var(--text3);margin-top:3px}
+        .goal-card .gc-values{display:flex;align-items:baseline;gap:6px;margin:12px 0 10px}
+        .goal-card .gc-current{font-size:28px;font-weight:700;color:var(--cyan)}
+        .goal-card .gc-target{font-size:15px;color:var(--text3)}
+        .goal-card .gc-bar{height:8px;background:rgba(0,0,0,0.08);border-radius:4px;overflow:hidden}
+        .goal-card .gc-bar-fill{height:100%;width:0;background:var(--cyan);border-radius:4px;transition:width 0.5s ease}
+        .goal-card .gc-pct{font-size:13px;color:var(--text3);text-align:right;margin-top:6px;font-weight:600}
         .interval-card{background:var(--gray6);border-radius:16px;padding:20px;margin-bottom:20px}
         .interval-card .ic-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
         .interval-card .ic-val{font-size:34px;font-weight:700;color:var(--cyan)}
@@ -231,6 +240,16 @@
         <div class="stats-header"><h1>통계</h1></div>
         <div class="stats-content">
             <div class="cal-filter" id="statsFilter" style="padding:0;margin-bottom:16px"></div>
+            <div class="goal-card">
+                <div class="gc-title">누적 복용량 목표</div>
+                <div class="gc-sub">표준 누적복용량의 50% 적용 (체중 55kg)</div>
+                <div class="gc-values">
+                    <span class="gc-current" id="gcCurrent">0mg</span>
+                    <span class="gc-target" id="gcTarget">/ 3300mg</span>
+                </div>
+                <div class="gc-bar"><div class="gc-bar-fill" id="gcBarFill"></div></div>
+                <div class="gc-pct" id="gcPct">0%</div>
+            </div>
             <div class="chart-card">
                 <div class="cc-title">월별 복용량</div>
                 <div class="year-nav">
@@ -650,6 +669,16 @@
         const yAxis=document.getElementById('yAxis');
         yAxis.innerHTML=`<span>${max}</span><span>${Math.round(max/2)}</span><span>0</span>`;
         const chart=document.getElementById('barChart');chart.innerHTML='';
+
+        // 누적 복용량 목표 계산 (1알=10mg, 목표=3300mg)
+        const totalPillsAll=meds.reduce((s,m)=>s+getMedRecs(m.id).length,0);
+        const totalMg=totalPillsAll*10;
+        const targetMg=3300;
+        const pct=Math.min(100,totalMg/targetMg*100);
+        document.getElementById('gcCurrent').textContent=totalMg+'mg';
+        document.getElementById('gcTarget').textContent='/ '+targetMg+'mg';
+        document.getElementById('gcBarFill').style.width=pct+'%';
+        document.getElementById('gcPct').textContent=pct.toFixed(1)+'%';
         mc.forEach((c,i)=>{
             const item=document.createElement('div');item.className='bar-item';
             const bar=document.createElement('div');bar.className='bar-fill';
