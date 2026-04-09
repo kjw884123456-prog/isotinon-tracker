@@ -157,6 +157,22 @@
         .sg-item.danger .sg-label{color:var(--red)}
         .settings-footer{text-align:center;padding:20px;font-size:13px;color:var(--text3)}
 
+        /* Alcohol */
+        .alcohol-card{background:var(--gray6);border-radius:16px;margin-bottom:12px;overflow:hidden}
+        .alc-row{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:0.5px solid rgba(0,0,0,0.06)}
+        .alc-row:last-child{border-bottom:none}
+        .alc-info{display:flex;align-items:center;gap:14px}
+        .alc-icon{font-size:26px}
+        .alc-name{font-size:15px;font-weight:600}
+        .alc-count{font-size:13px;color:var(--text3);margin-top:2px}
+        .alc-btns{display:flex;gap:8px;align-items:center}
+        .alc-btns button{width:34px;height:34px;border-radius:50%;border:none;background:var(--blue);color:white;font-size:20px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+        .alc-btns button:active{opacity:0.7}
+        .alc-stats-card{background:var(--gray6);border-radius:16px;padding:20px;margin-bottom:16px}
+        .alc-stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;font-size:15px;border-bottom:0.5px solid rgba(0,0,0,0.06)}
+        .alc-stat-row:last-child{border-bottom:none}
+        .alc-stat-val{color:var(--cyan);font-weight:600}
+
         /* Modal & Sheet */
         .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center}
         .modal-overlay.active{display:flex}
@@ -206,6 +222,38 @@
             <div class="section-subtitle">기록됨</div>
             <div id="recordedList"></div>
             <div id="noRecordMsg" style="font-size:15px;color:var(--text3);padding:12px 0;">오늘 복용 기록이 없어요</div>
+        </div>
+        <div class="divider"></div>
+        <div class="section">
+            <div class="section-title">음주 기록 (오늘)</div>
+            <div class="alcohol-card">
+                <div class="alc-row">
+                    <div class="alc-info">
+                        <span class="alc-icon">🍺</span>
+                        <div>
+                            <div class="alc-name">맥주 500cc</div>
+                            <div class="alc-count" id="todayBeer">0잔</div>
+                        </div>
+                    </div>
+                    <div class="alc-btns">
+                        <button onclick="changeAlcohol('beer',-1)">−</button>
+                        <button onclick="changeAlcohol('beer',1)">+</button>
+                    </div>
+                </div>
+                <div class="alc-row">
+                    <div class="alc-info">
+                        <span class="alc-icon">🥃</span>
+                        <div>
+                            <div class="alc-name">소주</div>
+                            <div class="alc-count" id="todaySoju">0잔</div>
+                        </div>
+                    </div>
+                    <div class="alc-btns">
+                        <button onclick="changeAlcohol('soju',-1)">−</button>
+                        <button onclick="changeAlcohol('soju',1)">+</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="divider"></div>
         <div class="section" style="padding-bottom:20px">
@@ -285,6 +333,21 @@
                 </div>
             </div>
             <div class="year-list" id="yearList"></div>
+            <div class="alc-stats-card">
+                <div class="cc-title">음주 기록 (<span id="alcStatYear"></span>)</div>
+                <div class="alc-stat-row" style="margin-top:8px">
+                    <span>🍺 맥주 500cc</span>
+                    <span class="alc-stat-val" id="alcStatBeer">0잔</span>
+                </div>
+                <div class="alc-stat-row">
+                    <span>🥃 소주</span>
+                    <span class="alc-stat-val" id="alcStatSoju">0잔</span>
+                </div>
+                <div class="alc-stat-row">
+                    <span>📅 음주한 날</span>
+                    <span class="alc-stat-val" id="alcStatDays">0일</span>
+                </div>
+            </div>
             <div class="interval-card">
                 <div class="ic-title">평균 복용 간격</div>
                 <div class="ic-val" id="avgInterval">-</div>
@@ -340,6 +403,7 @@
     <script>
     const MEDS_KEY='isotinon_meds';
     const RECS_KEY='isotinon_recs_v2';
+    const ALC_KEY='isotinon_alcohol';
     const MED_COLORS=['#5AC8FA','#FF9500','#FF3B30','#34C759','#AF52DE','#FF2D55','#007AFF','#5856D6'];
 
     // ===== DATA =====
@@ -353,6 +417,17 @@
         return d?JSON.parse(d):{};
     }
     function saveRecs(r){localStorage.setItem(RECS_KEY,JSON.stringify(r));}
+    function getAlcohol(){const d=localStorage.getItem(ALC_KEY);return d?JSON.parse(d):{};}
+    function saveAlcohol(a){localStorage.setItem(ALC_KEY,JSON.stringify(a));}
+    function getDayAlcohol(date){const a=getAlcohol();return a[date]||{beer:0,soju:0};}
+    function changeAlcohol(type,delta){
+        const a=getAlcohol();const today=todayStr();
+        if(!a[today])a[today]={beer:0,soju:0};
+        a[today][type]=Math.max(0,(a[today][type]||0)+delta);
+        if(a[today].beer===0&&a[today].soju===0)delete a[today];
+        saveAlcohol(a);renderToday();
+        if(delta>0)showToast(type==='beer'?'맥주 +1잔':'소주 +1잔');
+    }
     function getMedRecs(medId){const r=getRecs();return r[medId]||[];}
     function getAllDatesForMed(medId){return getMedRecs(medId);}
     function isTakenMed(medId,date){return getMedRecs(medId).includes(date);}
@@ -457,6 +532,11 @@
         });
 
         document.getElementById('noRecordMsg').style.display=anyRecorded?'none':'block';
+
+        // Alcohol today
+        const alcToday=getDayAlcohol(today);
+        document.getElementById('todayBeer').textContent=alcToday.beer+'잔';
+        document.getElementById('todaySoju').textContent=alcToday.soju+'잔';
 
         // Summary
         const sumList=document.getElementById('medSummaryList');sumList.innerHTML='';
@@ -707,6 +787,22 @@
             const lbl=document.createElement('span');lbl.className='bar-lbl';lbl.textContent=(i+1);
             item.appendChild(bar);item.appendChild(lbl);chart.appendChild(item);
         });
+
+        // Alcohol stats (for selected year)
+        const allAlc=getAlcohol();
+        let yBeer=0,ySoju=0,yDays=0;
+        Object.keys(allAlc).forEach(date=>{
+            const y=parseInt(date.split('-')[0]);
+            if(y===statsYear){
+                yBeer+=allAlc[date].beer||0;
+                ySoju+=allAlc[date].soju||0;
+                if((allAlc[date].beer||0)+(allAlc[date].soju||0)>0)yDays++;
+            }
+        });
+        document.getElementById('alcStatYear').textContent=statsYear+'년';
+        document.getElementById('alcStatBeer').textContent=yBeer+'잔';
+        document.getElementById('alcStatSoju').textContent=ySoju+'잔';
+        document.getElementById('alcStatDays').textContent=yDays+'일';
 
         const yc={};
         records.forEach(r=>{const y=r.split('-')[0];yc[y]=(yc[y]||0)+1;});
