@@ -172,6 +172,11 @@
         .alc-stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;font-size:15px;border-bottom:0.5px solid rgba(0,0,0,0.06)}
         .alc-stat-row:last-child{border-bottom:none}
         .alc-stat-val{color:var(--cyan);font-weight:600}
+        .alc-legend{display:flex;gap:16px;font-size:12px;color:var(--text3);margin-bottom:12px}
+        .leg-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+        .bar-stack-wrap{width:100%;max-width:22px;display:flex;flex-direction:column;border-radius:4px 4px 0 0;overflow:hidden}
+        .bar-beer{background:#FFB800;width:100%}
+        .bar-soju{background:#34C759;width:100%}
 
         /* Modal & Sheet */
         .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center}
@@ -333,19 +338,30 @@
                 </div>
             </div>
             <div class="year-list" id="yearList"></div>
-            <div class="alc-stats-card">
-                <div class="cc-title">음주 기록 (<span id="alcStatYear"></span>)</div>
-                <div class="alc-stat-row" style="margin-top:8px">
-                    <span>🍺 맥주 500cc</span>
-                    <span class="alc-stat-val" id="alcStatBeer">0잔</span>
+            <div class="chart-card">
+                <div class="cc-title">월별 음주량 (<span id="alcStatYear"></span>)</div>
+                <div class="cc-value" id="alcTotalCount">0잔</div>
+                <div class="alc-legend">
+                    <span><span class="leg-dot" style="background:#FFB800"></span>맥주 500cc</span>
+                    <span><span class="leg-dot" style="background:#34C759"></span>소주</span>
                 </div>
-                <div class="alc-stat-row">
-                    <span>🥃 소주</span>
-                    <span class="alc-stat-val" id="alcStatSoju">0잔</span>
+                <div class="chart-wrap">
+                    <div class="y-axis" id="alcYAxis"></div>
+                    <div class="bar-chart" id="alcBarChart"></div>
                 </div>
-                <div class="alc-stat-row">
-                    <span>📅 음주한 날</span>
-                    <span class="alc-stat-val" id="alcStatDays">0일</span>
+                <div style="margin-top:14px;border-top:0.5px solid rgba(0,0,0,0.06);padding-top:12px">
+                    <div class="alc-stat-row">
+                        <span>🍺 맥주 총합</span>
+                        <span class="alc-stat-val" id="alcStatBeer">0잔</span>
+                    </div>
+                    <div class="alc-stat-row">
+                        <span>🥃 소주 총합</span>
+                        <span class="alc-stat-val" id="alcStatSoju">0잔</span>
+                    </div>
+                    <div class="alc-stat-row">
+                        <span>📅 음주한 날</span>
+                        <span class="alc-stat-val" id="alcStatDays">0일</span>
+                    </div>
                 </div>
             </div>
             <div class="interval-card">
@@ -791,18 +807,52 @@
         // Alcohol stats (for selected year)
         const allAlc=getAlcohol();
         let yBeer=0,ySoju=0,yDays=0;
+        const monthBeer=Array(12).fill(0);
+        const monthSoju=Array(12).fill(0);
         Object.keys(allAlc).forEach(date=>{
-            const y=parseInt(date.split('-')[0]);
+            const [y,mo]=date.split('-').map(Number);
             if(y===statsYear){
-                yBeer+=allAlc[date].beer||0;
-                ySoju+=allAlc[date].soju||0;
-                if((allAlc[date].beer||0)+(allAlc[date].soju||0)>0)yDays++;
+                const b=allAlc[date].beer||0,s=allAlc[date].soju||0;
+                yBeer+=b;ySoju+=s;
+                monthBeer[mo-1]+=b;monthSoju[mo-1]+=s;
+                if(b+s>0)yDays++;
             }
         });
         document.getElementById('alcStatYear').textContent=statsYear+'년';
         document.getElementById('alcStatBeer').textContent=yBeer+'잔';
         document.getElementById('alcStatSoju').textContent=ySoju+'잔';
         document.getElementById('alcStatDays').textContent=yDays+'일';
+        document.getElementById('alcTotalCount').textContent=(yBeer+ySoju)+'잔';
+
+        // Alcohol bar chart
+        const monthTotal=monthBeer.map((b,i)=>b+monthSoju[i]);
+        const alcMax=Math.max(...monthTotal,1);
+        document.getElementById('alcYAxis').innerHTML=`<span>${alcMax}</span><span>${Math.round(alcMax/2)}</span><span>0</span>`;
+        const alcChart=document.getElementById('alcBarChart');alcChart.innerHTML='';
+        monthTotal.forEach((tot,i)=>{
+            const item=document.createElement('div');item.className='bar-item';
+            if(tot>0){
+                const stack=document.createElement('div');
+                stack.className='bar-stack-wrap';
+                stack.style.height=(tot/alcMax*100)+'%';
+                if(monthSoju[i]>0){
+                    const sj=document.createElement('div');
+                    sj.className='bar-soju';
+                    sj.style.height=(monthSoju[i]/tot*100)+'%';
+                    stack.appendChild(sj);
+                }
+                if(monthBeer[i]>0){
+                    const br=document.createElement('div');
+                    br.className='bar-beer';
+                    br.style.height=(monthBeer[i]/tot*100)+'%';
+                    stack.appendChild(br);
+                }
+                item.appendChild(stack);
+            }
+            const lbl=document.createElement('span');lbl.className='bar-lbl';lbl.textContent=(i+1);
+            item.appendChild(lbl);
+            alcChart.appendChild(item);
+        });
 
         const yc={};
         records.forEach(r=>{const y=r.split('-')[0];yc[y]=(yc[y]||0)+1;});
