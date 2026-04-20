@@ -191,6 +191,8 @@
         .form-label{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:6px;display:block}
         .form-input{width:100%;padding:14px 16px;border:1px solid var(--gray5);border-radius:12px;font-size:17px;background:var(--gray6);outline:none;font-family:inherit}
         .form-input:focus{border-color:var(--blue)}
+        .form-select{width:100%;padding:14px 16px;border:1px solid var(--gray5);border-radius:12px;font-size:17px;background:var(--gray6);outline:none;font-family:inherit;appearance:none;cursor:pointer}
+        .form-select:focus{border-color:var(--blue)}
 
         .color-picker{display:flex;gap:10px;flex-wrap:wrap}
         .color-opt{width:40px;height:40px;border-radius:50%;border:3px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -566,7 +568,7 @@
                 <div class="mm-info">
                     <div class="mm-name">${med.name}</div>
                     <div class="mm-dose">${med.dosage}</div>
-                    <div class="mm-count" style="color:var(--cyan)">전체 ${recs.length}알 복용</div>
+                    <div class="mm-count" style="color:var(--cyan)">전체 ${recs.length}${med.unit||'알'} 복용</div>
                 </div>
                 <span class="mm-arrow">›</span>
             `;
@@ -578,11 +580,12 @@
         const thisMonth=meds.reduce((a,m)=>a+getMedRecs(m.id).filter(r=>r.startsWith(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`)).length,0);
         const thisYear=meds.reduce((a,m)=>a+getMedRecs(m.id).filter(r=>r.startsWith(`${now.getFullYear()}`)).length,0);
 
+        const sumUnit=meds.length===1?(meds[0].unit||'알'):'회';
         document.getElementById('summaryGrid').innerHTML=`
             <div class="sum-grid">
-                <div class="sum-card"><div class="sc-label">이번 달</div><div class="sc-val">${thisMonth}</div><div class="sc-unit">알</div></div>
-                <div class="sum-card"><div class="sc-label">올해</div><div class="sc-val">${thisYear}</div><div class="sc-unit">알</div></div>
-                <div class="sum-card"><div class="sc-label">전체</div><div class="sc-val">${allRecs}</div><div class="sc-unit">알</div></div>
+                <div class="sum-card"><div class="sc-label">이번 달</div><div class="sc-val">${thisMonth}</div><div class="sc-unit">${sumUnit}</div></div>
+                <div class="sum-card"><div class="sc-label">올해</div><div class="sc-val">${thisYear}</div><div class="sc-unit">${sumUnit}</div></div>
+                <div class="sum-card"><div class="sc-label">전체</div><div class="sc-val">${allRecs}</div><div class="sc-unit">${sumUnit}</div></div>
             </div>
         `;
 
@@ -601,6 +604,16 @@
             <div class="form-group">
                 <label class="form-label">복용량</label>
                 <input class="form-input" id="medDoseInput" placeholder="예: 20mg, 500mg, 1정" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label">복용 단위</label>
+                <select class="form-select" id="medUnitInput">
+                    <option value="알">알 (알약/캡슐)</option>
+                    <option value="회">회 (크림/연고/점안액)</option>
+                    <option value="포">포 (가루약/유산균)</option>
+                    <option value="ml">ml (물약/시럽)</option>
+                    <option value="매">매 (패치)</option>
+                </select>
             </div>
             <div class="form-group">
                 <label class="form-label">색상</label>
@@ -629,11 +642,21 @@
                 <input class="form-input" id="medDoseInput" value="${med.dosage}" autocomplete="off">
             </div>
             <div class="form-group">
+                <label class="form-label">복용 단위</label>
+                <select class="form-select" id="medUnitInput">
+                    <option value="알" ${(med.unit||'알')==='알'?'selected':''}>알 (알약/캡슐)</option>
+                    <option value="회" ${med.unit==='회'?'selected':''}>회 (크림/연고/점안액)</option>
+                    <option value="포" ${med.unit==='포'?'selected':''}>포 (가루약/유산균)</option>
+                    <option value="ml" ${med.unit==='ml'?'selected':''}>ml (물약/시럽)</option>
+                    <option value="매" ${med.unit==='매'?'selected':''}>매 (패치)</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label class="form-label">색상</label>
                 <div class="color-picker" id="colorPicker"></div>
             </div>
             <div style="background:var(--gray6);border-radius:12px;padding:14px 16px;margin-bottom:16px;text-align:center;font-size:15px;color:var(--text3)">
-                전체 복용 기록: <strong style="color:var(--cyan)">${recs.length}알</strong>
+                전체 복용 기록: <strong style="color:var(--cyan)">${recs.length}${med.unit||'알'}</strong>
             </div>
             <button class="m-btn primary" onclick="saveEditMed('${medId}')">저장</button>
             <button class="m-btn danger" onclick="deleteMed('${medId}')">약 삭제</button>
@@ -660,19 +683,21 @@
     function saveNewMed(){
         const name=document.getElementById('medNameInput').value.trim();
         const dose=document.getElementById('medDoseInput').value.trim();
+        const unit=document.getElementById('medUnitInput').value;
         if(!name){showToast('약 이름을 입력하세요');return;}
         const meds=getMeds();
-        meds.push({id:genId(),name,dosage:dose||'',color:selectedColor});
+        meds.push({id:genId(),name,dosage:dose||'',color:selectedColor,unit:unit||'알'});
         saveMeds(meds);closeModal();renderToday();showToast(`${name} 추가됨!`);
     }
 
     function saveEditMed(id){
         const name=document.getElementById('medNameInput').value.trim();
         const dose=document.getElementById('medDoseInput').value.trim();
+        const unit=document.getElementById('medUnitInput').value;
         if(!name){showToast('약 이름을 입력하세요');return;}
         const meds=getMeds();
         const med=meds.find(m=>m.id===id);
-        if(med){med.name=name;med.dosage=dose;med.color=selectedColor;}
+        if(med){med.name=name;med.dosage=dose;med.color=selectedColor;med.unit=unit||'알';}
         saveMeds(meds);closeModal();renderToday();showToast('저장 완료!');
     }
 
@@ -781,7 +806,8 @@
         const mc=Array(12).fill(0);
         records.forEach(r=>{const[y,m]=r.split('-').map(Number);if(y===statsYear)mc[m-1]++;});
         const total=mc.reduce((a,b)=>a+b,0);
-        document.getElementById('statsTotal').textContent=total+'알';
+        const statsUnit=statsMedFilter==='all'?(meds.length===1?(meds[0].unit||'알'):'회'):(meds.find(m=>m.id===statsMedFilter)?.unit||'알');
+        document.getElementById('statsTotal').textContent=total+statsUnit;
         const max=Math.max(...mc,1);
         const yAxis=document.getElementById('yAxis');
         yAxis.innerHTML=`<span>${max}</span><span>${Math.round(max/2)}</span><span>0</span>`;
@@ -859,7 +885,7 @@
         const yl=document.getElementById('yearList');yl.innerHTML='';
         Object.keys(yc).sort().reverse().forEach(y=>{
             const item=document.createElement('div');item.className='yl-item';
-            item.innerHTML=`<span>${y}년</span><span class="yl-val">${yc[y]}알</span>`;
+            item.innerHTML=`<span>${y}년</span><span class="yl-val">${yc[y]}${statsUnit}</span>`;
             yl.appendChild(item);
         });
 
