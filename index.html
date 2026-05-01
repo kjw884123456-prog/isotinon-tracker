@@ -155,10 +155,16 @@
         .gc-goal-vals{font-size:12px;color:var(--text3);margin-bottom:5px}
         .gc-bar{height:8px;background:rgba(0,0,0,0.08);border-radius:4px;overflow:hidden}
         .gc-bar-fill{height:100%;width:0;background:var(--cyan);border-radius:4px;transition:width 0.5s ease}
-        .interval-card{background:var(--gray6);border-radius:16px;padding:20px;margin-bottom:20px}
+        .stats-bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+        .interval-card,.med-total-card{background:var(--gray6);border-radius:16px;padding:18px}
         .interval-card .ic-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
-        .interval-card .ic-val{font-size:34px;font-weight:700;color:var(--cyan)}
+        .interval-card .ic-val{font-size:30px;font-weight:700;color:var(--cyan)}
         .interval-card .ic-sub{font-size:13px;color:var(--text3);margin-top:4px}
+        .med-total-card .mt-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
+        .mt-list{display:flex;flex-direction:column;gap:8px}
+        .mt-item{display:flex;justify-content:space-between;gap:8px;font-size:13px;line-height:1.25}
+        .mt-name{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .mt-val{color:var(--cyan);font-weight:700;white-space:nowrap}
 
         /* Settings */
         .settings-header{padding:52px 20px 10px}
@@ -313,30 +319,30 @@
         <div class="stats-content">
             <div class="cal-filter" id="statsFilter" style="padding:0;margin-bottom:16px"></div>
             <div class="goal-card">
-                <div class="gc-title">누적 복용량 목표</div>
-                <div class="gc-sub">체중 55kg 기준 · 현재 <span id="gcCurrent">0mg</span></div>
+                <div class="gc-title">이소티논 누적 복용량 목표</div>
+                <div class="gc-sub">체중 55kg 기준 · 이소티논 현재 <span id="gcCurrent">0mg</span></div>
                 <div class="gc-goal">
                     <div class="gc-goal-head">
-                        <span class="gc-goal-name">60mg/kg</span>
-                        <span class="gc-goal-note">표준 누적복용량의 50%</span>
+                        <span class="gc-goal-name">120mg/kg</span>
+                        <span class="gc-goal-note">표준 목표 범위 시작</span>
                     </div>
-                    <div class="gc-goal-vals" id="gcVals1">0mg / 3300mg · 0%</div>
+                    <div class="gc-goal-vals" id="gcVals1">0mg / 6600mg · 0%</div>
                     <div class="gc-bar"><div class="gc-bar-fill" id="gcBar1"></div></div>
                 </div>
                 <div class="gc-goal">
                     <div class="gc-goal-head">
-                        <span class="gc-goal-name">80mg/kg</span>
-                        <span class="gc-goal-note">표준 누적복용량의 66.7%</span>
+                        <span class="gc-goal-name">135mg/kg</span>
+                        <span class="gc-goal-note">120-150mg/kg 중간값</span>
                     </div>
-                    <div class="gc-goal-vals" id="gcVals2">0mg / 4400mg · 0%</div>
+                    <div class="gc-goal-vals" id="gcVals2">0mg / 7425mg · 0%</div>
                     <div class="gc-bar"><div class="gc-bar-fill" id="gcBar2"></div></div>
                 </div>
                 <div class="gc-goal">
                     <div class="gc-goal-head">
-                        <span class="gc-goal-name">100mg/kg</span>
-                        <span class="gc-goal-note">표준 누적복용량의 83.3%</span>
+                        <span class="gc-goal-name">150mg/kg</span>
+                        <span class="gc-goal-note">표준 목표 범위 상단</span>
                     </div>
-                    <div class="gc-goal-vals" id="gcVals3">0mg / 5500mg · 0%</div>
+                    <div class="gc-goal-vals" id="gcVals3">0mg / 8250mg · 0%</div>
                     <div class="gc-bar"><div class="gc-bar-fill" id="gcBar3"></div></div>
                 </div>
             </div>
@@ -380,10 +386,16 @@
                     </div>
                 </div>
             </div>
-            <div class="interval-card">
-                <div class="ic-title">평균 복용 간격</div>
-                <div class="ic-val" id="avgInterval">-</div>
-                <div class="ic-sub" id="intervalSub"></div>
+            <div class="stats-bottom-grid">
+                <div class="interval-card">
+                    <div class="ic-title">평균 복용 간격</div>
+                    <div class="ic-val" id="avgInterval">-</div>
+                    <div class="ic-sub" id="intervalSub"></div>
+                </div>
+                <div class="med-total-card">
+                    <div class="mt-title">약별 전체 복용량</div>
+                    <div class="mt-list" id="medTotalList"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -437,6 +449,8 @@
     const RECS_KEY='isotinon_recs_v2';
     const ALC_KEY='isotinon_alcohol';
     const MED_COLORS=['#5AC8FA','#FF9500','#FF3B30','#34C759','#AF52DE','#FF2D55','#007AFF','#5856D6'];
+    const ISO_WEIGHT_KG=55;
+    const ISO_GOAL_MG_PER_KG=[120,135,150];
 
     // ===== DATA =====
     function getMeds(){
@@ -812,13 +826,13 @@
         yAxis.innerHTML=`<span>${max}</span><span>${Math.round(max/2)}</span><span>0</span>`;
         const chart=document.getElementById('barChart');chart.innerHTML='';
 
-        // 누적 복용량 목표 계산 (1알=10mg, 체중 55kg)
-        const totalPillsAll=meds.reduce((s,m)=>s+getMedRecs(m.id).length,0);
-        const totalMg=totalPillsAll*10;
+        // 이소티논 누적 복용량 목표 계산 (체중 55kg)
+        const totalMg=meds.filter(isIsoMed).reduce((s,m)=>s+(getMedRecs(m.id).length*getMgPerUnit(m)),0);
         document.getElementById('gcCurrent').textContent=totalMg+'mg';
-        [[3300,'gcVals1','gcBar1'],[4400,'gcVals2','gcBar2'],[5500,'gcVals3','gcBar3']].forEach(([target,vid,bid])=>{
+        ISO_GOAL_MG_PER_KG.map(mgPerKg=>[mgPerKg*ISO_WEIGHT_KG,mgPerKg]).forEach(([target,mgPerKg],idx)=>{
+            const vid=`gcVals${idx+1}`,bid=`gcBar${idx+1}`;
             const p=Math.min(100,totalMg/target*100);
-            document.getElementById(vid).textContent=`${totalMg}mg / ${target}mg · ${p.toFixed(1)}%`;
+            document.getElementById(vid).textContent=`${totalMg}mg / ${target}mg (${mgPerKg}mg/kg) · ${p.toFixed(1)}%`;
             document.getElementById(bid).style.width=p+'%';
         });
         mc.forEach((c,i)=>{
@@ -1006,6 +1020,10 @@
         if(stored>0)return stored;
         const match=String(med?.dosage||'').match(/(\d+(?:\.\d+)?)\s*mg/i);
         return match?Number(match[1]):0;
+    }
+    function isIsoMed(med){
+        const text=`${med?.id||''} ${med?.name||''}`.toLowerCase();
+        return med?.id==='iso'||text.includes('이소')||text.includes('iso')||text.includes('isotret');
     }
     function formatMedDose(med,amount){
         const base=formatAmount(amount,med.unit||'\uc54c');
@@ -1370,13 +1388,21 @@
         const yAxis=document.getElementById('yAxis');
         yAxis.innerHTML=`<span>${max}</span><span>${Math.round(max/2)}</span><span>0</span>`;
         const chart=document.getElementById('barChart');chart.innerHTML='';
-        const totalMg=meds.reduce((s,m)=>s+(getMedTotalAmount(m.id)*getMgPerUnit(m)),0);
+        const totalMg=meds.filter(isIsoMed).reduce((s,m)=>s+(getMedTotalAmount(m.id)*getMgPerUnit(m)),0);
         document.getElementById('gcCurrent').textContent=totalMg+'mg';
-        [[3300,'gcVals1','gcBar1'],[4400,'gcVals2','gcBar2'],[5500,'gcVals3','gcBar3']].forEach(([target,vid,bid])=>{
+        ISO_GOAL_MG_PER_KG.map(mgPerKg=>[mgPerKg*ISO_WEIGHT_KG,mgPerKg]).forEach(([target,mgPerKg],idx)=>{
+            const vid=`gcVals${idx+1}`,bid=`gcBar${idx+1}`;
             const p=Math.min(100,totalMg/target*100);
-            document.getElementById(vid).textContent=`${totalMg}mg / ${target}mg 중 ${p.toFixed(1)}%`;
+            document.getElementById(vid).textContent=`${totalMg}mg / ${target}mg (${mgPerKg}mg/kg) 중 ${p.toFixed(1)}%`;
             document.getElementById(bid).style.width=p+'%';
         });
+        const totalList=document.getElementById('medTotalList');
+        if(totalList){
+            totalList.innerHTML=meds.map(m=>{
+                const amount=getMedTotalAmount(m.id);
+                return `<div class="mt-item"><span class="mt-name">${m.name}</span><span class="mt-val">${formatMedDose(m,amount)}</span></div>`;
+            }).join('');
+        }
         mc.forEach((c,i)=>{
             const item=document.createElement('div');item.className='bar-item';
             const bar=document.createElement('div');bar.className='bar-fill';
