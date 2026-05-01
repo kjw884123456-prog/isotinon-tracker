@@ -318,31 +318,31 @@
         <div class="stats-header"><h1>통계</h1></div>
         <div class="stats-content">
             <div class="cal-filter" id="statsFilter" style="padding:0;margin-bottom:16px"></div>
-            <div class="goal-card">
+            <div class="goal-card" id="isoGoalCard" style="display:none">
                 <div class="gc-title">이소티논 누적 복용량 목표</div>
-                <div class="gc-sub">체중 55kg 기준 · 이소티논 현재 <span id="gcCurrent">0mg</span></div>
+                <div class="gc-sub">55kg × 120mg/kg = 6600mg 기준 · 현재 <span id="gcCurrent">0mg</span></div>
                 <div class="gc-goal">
                     <div class="gc-goal-head">
-                        <span class="gc-goal-name">120mg/kg</span>
-                        <span class="gc-goal-note">표준 목표 범위 시작</span>
+                        <span class="gc-goal-name">50%</span>
+                        <span class="gc-goal-note">3300mg</span>
                     </div>
-                    <div class="gc-goal-vals" id="gcVals1">0mg / 6600mg · 0%</div>
+                    <div class="gc-goal-vals" id="gcVals1">0mg / 3300mg · 0%</div>
                     <div class="gc-bar"><div class="gc-bar-fill" id="gcBar1"></div></div>
                 </div>
                 <div class="gc-goal">
                     <div class="gc-goal-head">
-                        <span class="gc-goal-name">135mg/kg</span>
-                        <span class="gc-goal-note">120-150mg/kg 중간값</span>
+                        <span class="gc-goal-name">75%</span>
+                        <span class="gc-goal-note">4950mg</span>
                     </div>
-                    <div class="gc-goal-vals" id="gcVals2">0mg / 7425mg · 0%</div>
+                    <div class="gc-goal-vals" id="gcVals2">0mg / 4950mg · 0%</div>
                     <div class="gc-bar"><div class="gc-bar-fill" id="gcBar2"></div></div>
                 </div>
                 <div class="gc-goal">
                     <div class="gc-goal-head">
-                        <span class="gc-goal-name">150mg/kg</span>
-                        <span class="gc-goal-note">표준 목표 범위 상단</span>
+                        <span class="gc-goal-name">100%</span>
+                        <span class="gc-goal-note">6600mg</span>
                     </div>
-                    <div class="gc-goal-vals" id="gcVals3">0mg / 8250mg · 0%</div>
+                    <div class="gc-goal-vals" id="gcVals3">0mg / 6600mg · 0%</div>
                     <div class="gc-bar"><div class="gc-bar-fill" id="gcBar3"></div></div>
                 </div>
             </div>
@@ -450,7 +450,8 @@
     const ALC_KEY='isotinon_alcohol';
     const MED_COLORS=['#5AC8FA','#FF9500','#FF3B30','#34C759','#AF52DE','#FF2D55','#007AFF','#5856D6'];
     const ISO_WEIGHT_KG=55;
-    const ISO_GOAL_MG_PER_KG=[120,135,150];
+    const ISO_TARGET_MG_PER_KG=120;
+    const ISO_GOAL_RATIOS=[0.5,0.75,1];
 
     // ===== DATA =====
     function getMeds(){
@@ -827,12 +828,18 @@
         const chart=document.getElementById('barChart');chart.innerHTML='';
 
         // 이소티논 누적 복용량 목표 계산 (체중 55kg)
-        const totalMg=meds.filter(isIsoMed).reduce((s,m)=>s+(getMedRecs(m.id).length*getMgPerUnit(m)),0);
+        const activeMed=meds.find(m=>m.id===statsMedFilter);
+        const shouldShowIsoGoal=activeMed&&isIsoMed(activeMed);
+        const isoGoalCard=document.getElementById('isoGoalCard');
+        if(isoGoalCard)isoGoalCard.style.display=shouldShowIsoGoal?'block':'none';
+        const totalMg=shouldShowIsoGoal?getMedRecs(activeMed.id).length*getMgPerUnit(activeMed):0;
         document.getElementById('gcCurrent').textContent=totalMg+'mg';
-        ISO_GOAL_MG_PER_KG.map(mgPerKg=>[mgPerKg*ISO_WEIGHT_KG,mgPerKg]).forEach(([target,mgPerKg],idx)=>{
+        const isoTargetMg=ISO_WEIGHT_KG*ISO_TARGET_MG_PER_KG;
+        ISO_GOAL_RATIOS.forEach((ratio,idx)=>{
+            const target=isoTargetMg*ratio;
             const vid=`gcVals${idx+1}`,bid=`gcBar${idx+1}`;
             const p=Math.min(100,totalMg/target*100);
-            document.getElementById(vid).textContent=`${totalMg}mg / ${target}mg (${mgPerKg}mg/kg) · ${p.toFixed(1)}%`;
+            document.getElementById(vid).textContent=`${totalMg}mg / ${target}mg · ${p.toFixed(1)}%`;
             document.getElementById(bid).style.width=p+'%';
         });
         mc.forEach((c,i)=>{
@@ -1388,12 +1395,18 @@
         const yAxis=document.getElementById('yAxis');
         yAxis.innerHTML=`<span>${max}</span><span>${Math.round(max/2)}</span><span>0</span>`;
         const chart=document.getElementById('barChart');chart.innerHTML='';
-        const totalMg=meds.filter(isIsoMed).reduce((s,m)=>s+(getMedTotalAmount(m.id)*getMgPerUnit(m)),0);
+        const activeMed=meds.find(m=>m.id===statsMedFilter);
+        const shouldShowIsoGoal=activeMed&&isIsoMed(activeMed);
+        const isoGoalCard=document.getElementById('isoGoalCard');
+        if(isoGoalCard)isoGoalCard.style.display=shouldShowIsoGoal?'block':'none';
+        const totalMg=shouldShowIsoGoal?getMedTotalAmount(activeMed.id)*getMgPerUnit(activeMed):0;
         document.getElementById('gcCurrent').textContent=totalMg+'mg';
-        ISO_GOAL_MG_PER_KG.map(mgPerKg=>[mgPerKg*ISO_WEIGHT_KG,mgPerKg]).forEach(([target,mgPerKg],idx)=>{
+        const isoTargetMg=ISO_WEIGHT_KG*ISO_TARGET_MG_PER_KG;
+        ISO_GOAL_RATIOS.forEach((ratio,idx)=>{
+            const target=isoTargetMg*ratio;
             const vid=`gcVals${idx+1}`,bid=`gcBar${idx+1}`;
             const p=Math.min(100,totalMg/target*100);
-            document.getElementById(vid).textContent=`${totalMg}mg / ${target}mg (${mgPerKg}mg/kg) 중 ${p.toFixed(1)}%`;
+            document.getElementById(vid).textContent=`${totalMg}mg / ${target}mg · ${p.toFixed(1)}%`;
             document.getElementById(bid).style.width=p+'%';
         });
         const totalList=document.getElementById('medTotalList');
