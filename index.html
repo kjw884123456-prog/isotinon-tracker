@@ -50,6 +50,19 @@
         .dose-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
         .dose-preset{border:none;border-radius:12px;background:var(--gray6);color:var(--blue);font-size:14px;font-weight:700;padding:10px 6px;cursor:pointer}
         .dose-preset:active{background:var(--gray5)}
+        .day-dose-list{max-height:52vh;overflow-y:auto;margin:4px 0 16px;padding-right:2px}
+        .day-dose-card{background:var(--gray6);border-radius:14px;padding:14px;margin-bottom:10px}
+        .day-dose-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+        .day-dose-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+        .day-dose-name{font-size:16px;font-weight:700}
+        .day-dose-meta{font-size:12px;color:var(--text3);margin-top:2px}
+        .day-dose-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+        .day-dose-fields.single{grid-template-columns:1fr}
+        .day-dose-field label{display:block;font-size:12px;font-weight:600;color:var(--text3);margin-bottom:5px}
+        .day-dose-field input{width:100%;padding:10px 12px;border:1px solid var(--gray5);border-radius:10px;background:white;font-size:15px;outline:none}
+        .day-dose-field input:focus{border-color:var(--blue)}
+        .day-dose-preview{font-size:13px;color:var(--text3);margin-top:8px}
+        .day-dose-preview strong{color:var(--cyan)}
 
         .recorded-card{background:var(--gray6);border-radius:16px;padding:14px 20px;margin-bottom:8px}
         .recorded-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:15px}
@@ -1095,6 +1108,101 @@
         renderToday();
         showToast(`${med?.name||'약'} ${formatMedDose(med||{},amount)} 기록!`);
     }
+    function syncDayDoseInput(index,source){
+        const unitInput=document.getElementById(`dayDoseUnit_${index}`);
+        const mgInput=document.getElementById(`dayDoseMg_${index}`);
+        const preview=document.getElementById(`dayDosePreview_${index}`);
+        if(!unitInput||!preview)return;
+        const mgPerUnit=Number(unitInput.dataset.mgPerUnit)||0;
+        if(source==='mg'&&mgInput&&mgPerUnit){
+            const mgAmount=Number(mgInput.value)||0;
+            unitInput.value=mgAmount>0?formatPlainNumber(mgAmount/mgPerUnit):'';
+        }else if(mgInput&&mgPerUnit){
+            const amount=Number(unitInput.value)||0;
+            mgInput.value=amount>0?formatPlainNumber(amount*mgPerUnit):'';
+        }
+        const amount=Number(unitInput.value)||0;
+        const unit=unitInput.dataset.unit||'\uc54c';
+        preview.innerHTML=amount>0?`저장될 기록: <strong>${formatAmount(amount,unit)}${mgPerUnit?` / ${formatAmount(amount*mgPerUnit,'mg')}`:''}</strong>`:'기록 없음';
+    }
+    function openDayDoseModal(date){
+        const meds=getMeds();
+        const [y,m,d]=date.split('-').map(Number);
+        const mc=document.getElementById('modalContent');
+        mc.innerHTML=`
+            <h3>${y}년 ${m}월 ${d}일 기록 수정</h3>
+            <div class="day-dose-list">
+                ${meds.map((med,index)=>{
+                    const unit=med.unit||'\uc54c';
+                    const mgPerUnit=getMgPerUnit(med);
+                    const amount=getMedAmount(med.id,date);
+                    const amountText=amount>0?formatPlainNumber(amount):'';
+                    const mgText=amount>0&&mgPerUnit?formatPlainNumber(amount*mgPerUnit):'';
+                    return `
+                        <div class="day-dose-card">
+                            <div class="day-dose-head">
+                                <div class="day-dose-icon" style="background:${med.color}30">💊</div>
+                                <div>
+                                    <div class="day-dose-name">${med.name}</div>
+                                    <div class="day-dose-meta">${med.dosage||''}</div>
+                                </div>
+                            </div>
+                            <div class="day-dose-fields ${mgPerUnit?'':'single'}">
+                                <div class="day-dose-field">
+                                    <label>${unit} 입력</label>
+                                    <input id="dayDoseUnit_${index}" type="number" min="0" step="0.01" value="${amountText}" data-unit="${unit}" data-mg-per-unit="${mgPerUnit}" oninput="syncDayDoseInput(${index},'unit')" autocomplete="off">
+                                </div>
+                                ${mgPerUnit?`
+                                <div class="day-dose-field">
+                                    <label>mg 입력</label>
+                                    <input id="dayDoseMg_${index}" type="number" min="0" step="0.1" value="${mgText}" oninput="syncDayDoseInput(${index},'mg')" autocomplete="off">
+                                </div>`:''}
+                            </div>
+                            <div class="day-dose-preview" id="dayDosePreview_${index}"></div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            <button class="m-btn primary" onclick="saveDayDoseModal('${date}')">저장</button>
+            <button class="m-btn danger" onclick="clearDayDoseModal('${date}')">이 날 기록 모두 삭제</button>
+            <button class="m-btn cancel" onclick="closeModal()">취소</button>
+        `;
+        document.getElementById('modal').classList.add('active');
+        meds.forEach((_,index)=>syncDayDoseInput(index,'unit'));
+    }
+    function saveDayDoseModal(date){
+        const meds=getMeds();
+        const r=getRecs();
+        meds.forEach((med,index)=>{
+            const input=document.getElementById(`dayDoseUnit_${index}`);
+            const amount=Number(input?.value)||0;
+            const map=normalizeRecMap(r[med.id]);
+            if(amount>0)map[date]=amount;
+            else delete map[date];
+            r[med.id]=Object.fromEntries(Object.entries(map).sort(([a],[b])=>a.localeCompare(b)));
+        });
+        saveRecs(r);
+        closeModal();
+        renderCalendar();
+        renderToday();
+        renderStats();
+        showToast('기록 수정 완료');
+    }
+    function clearDayDoseModal(date){
+        const meds=getMeds();
+        const r=getRecs();
+        meds.forEach(med=>{
+            const map=normalizeRecMap(r[med.id]);
+            delete map[date];
+            r[med.id]=Object.fromEntries(Object.entries(map).sort(([a],[b])=>a.localeCompare(b)));
+        });
+        saveRecs(r);
+        closeModal();
+        renderCalendar();
+        renderToday();
+        renderStats();
+        showToast('이 날 기록 삭제 완료');
+    }
     function removeMedRec(medId,date){
         const r=getRecs();
         const map=normalizeRecMap(r[medId]);
@@ -1260,16 +1368,7 @@
             if(isDayTaken(ds)){e.classList.add('taken');mc++;}
             if(ds===today)e.classList.add('today');
             e.addEventListener('click',()=>{
-                if(calMedFilter!=='all'){
-                    if(isTakenMed(calMedFilter,ds)){removeMedRec(calMedFilter,ds);showToast('기록 취소');}
-                    else{addMedRec(calMedFilter,ds);showToast('기록 추가!');}
-                } else if(meds.length===1){
-                    if(isTakenMed(meds[0].id,ds)){removeMedRec(meds[0].id,ds);showToast('기록 취소');}
-                    else{addMedRec(meds[0].id,ds);showToast('기록 추가!');}
-                } else {
-                    showToast('약을 선택해주세요');return;
-                }
-                renderCalendar();renderToday();
+                openDayDoseModal(ds);
             });
             grid.appendChild(e);
         }
