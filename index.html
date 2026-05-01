@@ -83,13 +83,6 @@
         .med-manage .mm-count{font-size:13px;margin-top:2px}
         .med-manage .mm-arrow{color:var(--gray3);font-size:18px}
 
-        /* Summary Grid */
-        .sum-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
-        .sum-card{background:var(--gray6);border-radius:14px;padding:14px 12px;text-align:center}
-        .sum-card .sc-label{font-size:11px;color:var(--text3);font-weight:500}
-        .sum-card .sc-val{font-size:24px;font-weight:700;color:var(--cyan);margin-top:4px}
-        .sum-card .sc-unit{font-size:11px;color:var(--text3)}
-
         /* Tab Bar */
         .tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(249,249,249,0.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid rgba(0,0,0,0.12);display:flex;padding:6px 0 calc(6px + var(--sb));z-index:100}
         .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;border:none;background:none;cursor:pointer}
@@ -288,7 +281,6 @@
         <div class="section" style="padding-bottom:20px">
             <div class="section-title">사용자의 투여약</div>
             <div id="medSummaryList"></div>
-            <div id="summaryGrid"></div>
         </div>
     </div>
 
@@ -596,21 +588,6 @@
             `;
             sumList.appendChild(div);
         });
-
-        // Total summary
-        const allRecs=meds.reduce((a,m)=>a+getMedRecs(m.id).length,0);
-        const thisMonth=meds.reduce((a,m)=>a+getMedRecs(m.id).filter(r=>r.startsWith(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`)).length,0);
-        const thisYear=meds.reduce((a,m)=>a+getMedRecs(m.id).filter(r=>r.startsWith(`${now.getFullYear()}`)).length,0);
-
-        const sumUnit=meds.length===1?(meds[0].unit||'알'):'회';
-        document.getElementById('summaryGrid').innerHTML=`
-            <div class="sum-grid">
-                <div class="sum-card"><div class="sc-label">이번 달</div><div class="sc-val">${thisMonth}</div><div class="sc-unit">${sumUnit}</div></div>
-                <div class="sum-card"><div class="sc-label">올해</div><div class="sc-val">${thisYear}</div><div class="sc-unit">${sumUnit}</div></div>
-                <div class="sum-card"><div class="sc-label">전체</div><div class="sc-val">${allRecs}</div><div class="sc-unit">${sumUnit}</div></div>
-            </div>
-        `;
-
         renderWeekStrip();
     }
 
@@ -1278,18 +1255,6 @@
             `;
             sumList.appendChild(div);
         });
-        const monthPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-        const allRecs=meds.reduce((a,m)=>a+getMedTotalAmount(m.id),0);
-        const thisMonth=meds.reduce((a,m)=>a+getMedAmountByPrefix(m.id,monthPrefix),0);
-        const thisYear=meds.reduce((a,m)=>a+getMedAmountByPrefix(m.id,`${now.getFullYear()}`),0);
-        const sumUnit=getAggregateUnit(meds);
-        document.getElementById('summaryGrid').innerHTML=`
-            <div class="sum-grid">
-                <div class="sum-card"><div class="sc-label">이번 달</div><div class="sc-val">${thisMonth}</div><div class="sc-unit">${sumUnit}</div></div>
-                <div class="sum-card"><div class="sc-label">올해</div><div class="sc-val">${thisYear}</div><div class="sc-unit">${sumUnit}</div></div>
-                <div class="sum-card"><div class="sc-label">전체</div><div class="sc-val">${allRecs}</div><div class="sc-unit">${sumUnit}</div></div>
-            </div>
-        `;
         renderWeekStrip();
     }
     function openEditMed(medId){
