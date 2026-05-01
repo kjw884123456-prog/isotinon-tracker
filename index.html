@@ -44,6 +44,12 @@
         .ma-btn.take{background:var(--blue);color:white}
         .ma-btn.taken{background:var(--green);color:white}
         .ma-btn:active{opacity:0.7}
+        .dose-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .dose-preview{background:var(--gray6);border-radius:12px;padding:12px 14px;margin:8px 0 16px;font-size:15px;color:var(--text3);text-align:center}
+        .dose-preview strong{color:var(--cyan);font-size:18px}
+        .dose-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+        .dose-preset{border:none;border-radius:12px;background:var(--gray6);color:var(--blue);font-size:14px;font-weight:700;padding:10px 6px;cursor:pointer}
+        .dose-preset:active{background:var(--gray5)}
 
         .recorded-card{background:var(--gray6);border-radius:16px;padding:14px 20px;margin-bottom:8px}
         .recorded-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:15px}
@@ -425,22 +431,7 @@
     const MEDS_KEY='isotinon_meds';
     const RECS_KEY='isotinon_recs_v2';
     const ALC_KEY='isotinon_alcohol';
-    const SEED_KEY='sleep_meds_seed_v1';
     const MED_COLORS=['#5AC8FA','#FF9500','#FF3B30','#34C759','#AF52DE','#FF2D55','#007AFF','#5856D6'];
-    const SEEDED_MEDS=[
-        {id:'lazepam',name:'\ub77c\uc81c\ud31c',dosage:'1 tab = 1mg',color:'#AF52DE',unit:'\uc54c',mgPerUnit:1},
-        {id:'zolpidem',name:'\uc878\ud53c\ub380',dosage:'1 tab = 10mg',color:'#5AC8FA',unit:'\uc54c',mgPerUnit:10}
-    ];
-    const SEEDED_RECORDS={
-        lazepam:{
-            '2024-06-15':0.5,'2024-10-08':1,'2024-12-31':0.5,
-            '2025-01-04':0.5,'2025-01-17':0.25,'2025-01-22':1,'2025-06-15':0.15,'2025-06-16':0.15,'2025-06-19':0.25,'2025-11-20':0.6,'2025-12-02':0.4
-        },
-        zolpidem:{
-            '2025-06-07':0.5,'2025-06-08':0.5,'2025-06-09':0.5,'2025-06-24':0.5,'2025-06-25':0.5,'2025-07-18':1,'2025-07-20':0.5,'2025-07-28':0.5,'2025-07-29':0.5,'2025-08-04':0.5,'2025-08-11':0.5,'2025-08-13':0.5,'2025-08-14':0.5,'2025-08-18':0.5,'2025-08-21':0.5,'2025-08-22':0.5,'2025-08-26':0.5,'2025-09-01':0.5,'2025-09-11':0.5,'2025-09-12':0.5,'2025-10-20':0.5,'2025-10-22':0.5,'2025-11-02':0.5,'2025-11-10':0.5,'2025-11-11':0.5,'2025-11-12':1,'2025-11-13':0.5,'2025-11-14':1,'2025-11-17':0.5,'2025-11-18':1,'2025-11-19':1,'2025-11-21':0.5,'2025-12-01':0.25,'2025-12-04':0.5,'2025-12-17':0.5,'2025-12-30':0.25,
-            '2026-01-05':0.25,'2026-01-08':0.5,'2026-01-20':0.5,'2026-02-09':0.25,'2026-02-10':0.75,'2026-02-11':0.5,'2026-02-12':0.5,'2026-03-12':0.25,'2026-03-16':0.5,'2026-03-26':0.5,'2026-03-27':0.5,'2026-04-22':0.25
-        }
-    };
 
     // ===== DATA =====
     function getMeds(){
@@ -985,7 +976,7 @@
     }
     function doReset(){
         localStorage.removeItem(MEDS_KEY);localStorage.removeItem(RECS_KEY);
-        localStorage.removeItem('isotinon_initialized');localStorage.removeItem('isotinon_migrated_v2');localStorage.removeItem(SEED_KEY);
+        localStorage.removeItem('isotinon_initialized');localStorage.removeItem('isotinon_migrated_v2');
         closeModal();renderToday();showToast('초기화 완료');
     }
     function closeModal(){document.getElementById('modal').classList.remove('active');}
@@ -994,7 +985,7 @@
     // ===== SEEDED MED DATA =====
     function getMeds(){
         const d=localStorage.getItem(MEDS_KEY);
-        return d?JSON.parse(d):[];
+        return d?JSON.parse(d):[{id:'iso',name:'이소티논',dosage:'10mg',color:'#5AC8FA',unit:'알',mgPerUnit:10}];
     }
     function normalizeRecMap(entry){
         if(Array.isArray(entry))return entry.reduce((acc,date)=>{acc[date]=1;return acc;},{});
@@ -1020,6 +1011,18 @@
         const text=Number.isInteger(amount)?String(amount):String(amount).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'');
         return `${text}${unit}`;
     }
+    function getMgPerUnit(med){
+        const stored=Number(med?.mgPerUnit);
+        if(stored>0)return stored;
+        const match=String(med?.dosage||'').match(/(\d+(?:\.\d+)?)\s*mg/i);
+        return match?Number(match[1]):0;
+    }
+    function formatMedDose(med,amount){
+        const base=formatAmount(amount,med.unit||'\uc54c');
+        const mgPerUnit=getMgPerUnit(med);
+        if(!mgPerUnit)return base;
+        return `${base} (${formatAmount(amount*mgPerUnit,'mg')})`;
+    }
     function isTakenMed(medId,date){return getMedAmount(medId,date)>0;}
     function addMedRec(medId,date,amount=1){
         const r=getRecs();
@@ -1028,43 +1031,76 @@
         r[medId]=map;
         saveRecs(r);
     }
+    function syncDoseInputs(source){
+        const unitInput=document.getElementById('doseUnitInput');
+        const mgInput=document.getElementById('doseMgInput');
+        const preview=document.getElementById('dosePreview');
+        if(!unitInput||!preview)return;
+        const mgPerUnit=Number(unitInput.dataset.mgPerUnit)||0;
+        if(source==='mg'&&mgInput&&mgPerUnit){
+            unitInput.value=((Number(mgInput.value)||0)/mgPerUnit)||'';
+        }else if(mgInput&&mgPerUnit){
+            mgInput.value=formatPlainNumber((Number(unitInput.value)||0)*mgPerUnit);
+        }
+        const amount=Number(unitInput.value)||0;
+        const unit=unitInput.dataset.unit||'\uc54c';
+        preview.innerHTML=amount>0?`이번 기록: <strong>${formatAmount(amount,unit)}${mgPerUnit?` / ${formatAmount(amount*mgPerUnit,'mg')}`:''}</strong>`:'복용량을 입력해주세요';
+    }
+    function formatPlainNumber(value){
+        const amount=Number(value)||0;
+        return Number.isInteger(amount)?String(amount):String(Number(amount.toFixed(4))).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'');
+    }
+    function setDosePreset(amount){
+        const input=document.getElementById('doseUnitInput');
+        if(!input)return;
+        input.value=amount;
+        syncDoseInputs('unit');
+    }
+    function openDoseModal(medId,date){
+        const med=getMeds().find(m=>m.id===medId);if(!med)return;
+        const unit=med.unit||'\uc54c';
+        const mgPerUnit=getMgPerUnit(med);
+        const mc=document.getElementById('modalContent');
+        mc.innerHTML=`
+            <h3>${med.name} 투여량</h3>
+            <div class="form-group">
+                <label class="form-label">먹은 양 (${unit})</label>
+                <input class="form-input" id="doseUnitInput" type="number" min="0" step="0.01" value="1" data-unit="${unit}" data-mg-per-unit="${mgPerUnit}" oninput="syncDoseInputs('unit')" autocomplete="off">
+            </div>
+            ${mgPerUnit?`
+            <div class="form-group">
+                <label class="form-label">mg로 입력</label>
+                <input class="form-input" id="doseMgInput" type="number" min="0" step="0.1" value="${formatPlainNumber(mgPerUnit)}" oninput="syncDoseInputs('mg')" autocomplete="off">
+            </div>`:''}
+            <div class="dose-presets">
+                <button class="dose-preset" onclick="setDosePreset(0.25)">0.25${unit}</button>
+                <button class="dose-preset" onclick="setDosePreset(0.5)">0.5${unit}</button>
+                <button class="dose-preset" onclick="setDosePreset(1)">1${unit}</button>
+                <button class="dose-preset" onclick="setDosePreset(2)">2${unit}</button>
+            </div>
+            <div class="dose-preview" id="dosePreview"></div>
+            <button class="m-btn primary" onclick="saveDoseFromModal('${medId}','${date}')">기록 저장</button>
+            <button class="m-btn cancel" onclick="closeModal()">취소</button>
+        `;
+        document.getElementById('modal').classList.add('active');
+        syncDoseInputs('unit');
+    }
+    function saveDoseFromModal(medId,date){
+        const input=document.getElementById('doseUnitInput');
+        const amount=Number(input?.value)||0;
+        if(amount<=0){showToast('복용량을 입력해주세요');return;}
+        const med=getMeds().find(m=>m.id===medId);
+        addMedRec(medId,date,amount);
+        closeModal();
+        renderToday();
+        showToast(`${med?.name||'약'} ${formatMedDose(med||{},amount)} 기록!`);
+    }
     function removeMedRec(medId,date){
         const r=getRecs();
         const map=normalizeRecMap(r[medId]);
         delete map[date];
         r[medId]=map;
         saveRecs(r);
-    }
-    function seedMedicationData(){
-        const meds=getMeds();
-        const recs=getRecs();
-        let medsChanged=false;
-        let recsChanged=false;
-        SEEDED_MEDS.forEach(seed=>{
-            const existing=meds.find(m=>m.id===seed.id);
-            if(existing){
-                if(existing.name!==seed.name||existing.dosage!==seed.dosage||existing.unit!==seed.unit||existing.mgPerUnit!==seed.mgPerUnit){
-                    Object.assign(existing,seed);
-                    medsChanged=true;
-                }
-            }else{
-                meds.push({...seed});
-                medsChanged=true;
-            }
-        });
-        Object.entries(SEEDED_RECORDS).forEach(([medId,seedMap])=>{
-            const map=normalizeRecMap(recs[medId]);
-            Object.entries(seedMap).forEach(([date,amount])=>{
-                if(map[date]==null){
-                    map[date]=amount;
-                    recsChanged=true;
-                }
-            });
-            recs[medId]=Object.fromEntries(Object.entries(map).sort(([a],[b])=>a.localeCompare(b)));
-        });
-        if(medsChanged)saveMeds(meds);
-        if(recsChanged)saveRecs(recs);
-        localStorage.setItem(SEED_KEY,'true');
     }
     function renderWeekStrip(){
         const strip=document.getElementById('weekStrip');strip.innerHTML='';
@@ -1101,7 +1137,7 @@
                     <div class="med-dose">${med.dosage}</div>
                 </div>
                 <div class="med-actions">
-                    ${taken?`<button class="ma-btn skip" onclick="removeMedRec('${med.id}','${today}');renderToday()">취소</button><button class="ma-btn taken">${formatAmount(takenAmount,med.unit||'\uc54c')}</button>`:`<button class="ma-btn take" onclick="addMedRec('${med.id}','${today}');renderToday();showToast('${med.name} 복용 기록!')">투여함</button>`}
+                    ${taken?`<button class="ma-btn skip" onclick="removeMedRec('${med.id}','${today}');renderToday()">취소</button><button class="ma-btn taken">${formatMedDose(med,takenAmount)}</button>`:`<button class="ma-btn take" onclick="openDoseModal('${med.id}','${today}')">투여함</button>`}
                 </div>
             `;
             list.appendChild(card);
@@ -1109,7 +1145,7 @@
                 anyRecorded=true;
                 const rec=document.createElement('div');
                 rec.className='recorded-card';
-                rec.innerHTML=`<div class="recorded-item"><span class="ri-check">✅</span><span>${med.name}</span><span class="ri-dose">${formatAmount(takenAmount,med.unit||'\uc54c')}</span></div>`;
+                rec.innerHTML=`<div class="recorded-item"><span class="ri-check">✅</span><span>${med.name}</span><span class="ri-dose">${formatMedDose(med,takenAmount)}</span></div>`;
                 recList.appendChild(rec);
             }
         });
@@ -1270,7 +1306,7 @@
         const yAxis=document.getElementById('yAxis');
         yAxis.innerHTML=`<span>${max}</span><span>${Math.round(max/2)}</span><span>0</span>`;
         const chart=document.getElementById('barChart');chart.innerHTML='';
-        const totalMg=meds.reduce((s,m)=>s+(getMedTotalAmount(m.id)*(m.mgPerUnit||0)),0);
+        const totalMg=meds.reduce((s,m)=>s+(getMedTotalAmount(m.id)*getMgPerUnit(m)),0);
         document.getElementById('gcCurrent').textContent=totalMg+'mg';
         [[3300,'gcVals1','gcBar1'],[4400,'gcVals2','gcBar2'],[5500,'gcVals3','gcBar3']].forEach(([target,vid,bid])=>{
             const p=Math.min(100,totalMg/target*100);
@@ -1366,7 +1402,6 @@
 
     // ===== INIT =====
     migrateOldData();
-    seedMedicationData();
     initCalendar();initStats();renderToday();renderCalendar();
     </script>
 </body>
